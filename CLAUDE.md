@@ -10,12 +10,12 @@ Especificação completa em `docs/SPEC.md` (leia-a antes de implementar qualquer
 
 ## Estado atual
 
-O scaffolding existe, mas **todo módulo de `lib/sped/` ainda é um stub `export {}`** com o contrato previsto em comentário. Nenhuma lógica de negócio foi implementada.
+`types.ts` e `layout.ts` estão implementados. **Os demais módulos de `lib/sped/` ainda são stubs `export {}`** com o contrato previsto em comentário.
 
 - [x] Dicionário de leiaute extraído do guia oficial (192 registros, 1.624 campos)
 - [x] F1-T1 — scaffolding (Next 15, TS strict, Tailwind 4, shadcn/ui, Vitest)
-- [ ] F1-T2 — `types.ts` + `layout.ts` (loader do dicionário)
-- [ ] F1-T3 — conferir os 19 registros em `revisao_manual` do JSON
+- [x] F1-T2 — `types.ts` + `layout.ts` (loader com zod, índices O(1))
+- [ ] F1-T3 — fechar o dicionário: os 21 de `revisao_manual` **mais** os defeitos abaixo
 - [ ] F1-T4 a F1-T7 — parser, serializer, totalizers, validator
 - [ ] Fase 2 — conversão Excel
 - [ ] Fase 3 — SaaS (Supabase, auth, rotas, UI)
@@ -45,6 +45,22 @@ python build_layout.py
 ```
 
 Em máquinas mais lentas, quebre os intervalos de página em blocos de ~70 páginas (múltiplas chamadas de `dump_pages.py`/`dump_words.py` com `chunks/c2.json`, `words/w2.json` etc.; `build_layout.py` lê todos os `chunks/*.json` e `words/*.json` de uma vez via `glob`).
+
+## Defeitos do dicionário além da `revisao_manual` (achados em F1-T2)
+
+A spec §2.4 afirma que os 171 registros fora da `revisao_manual` foram validados por três critérios (numeração sequencial, campo 01 = `REG`, tipo `C`/`N`). **Unicidade e integridade do nome do campo não estavam entre eles** — e é justamente o nome que serve de chave do índice O(1) e, na Fase 2, de cabeçalho de coluna no Excel. F1-T3 precisa cobrir também:
+
+| Registro | Defeito | Nome correto provável |
+| --- | --- | --- |
+| `0000` #13 | `IND_NAT_PJSCPSCPSCP` — texto vizinho da tabela grudou no nome | `IND_NAT_PJ` |
+| `C170` #28 / #34 | ambos `QUANT_BC`; só a descrição distingue (PIS / COFINS) | `QUANT_BC_PIS` / `QUANT_BC_COFINS` |
+| `M210` #11/#14/#15, #13/#16 | `VL_CONT_DIFER` ×3 e `VL_CONT_PER` ×2 | conferir na página do guia |
+| `M610` | idêntico ao `M210` | idem |
+| `0145` #3 / #4 | ambos `VL_REC` | conferir |
+
+`carregarLayout()` não esconde nada disso: expõe tudo em `layout.avisosIntegridade`, com `motivo` tipado (`nome_duplicado`, `tipo_nao_identificado`, `num_nao_sequencial`, `campo_01_nao_e_reg`). Em nome duplicado o índice guarda a **primeira** ocorrência e a segunda fica inacessível por nome — daí o aviso. Os testes em `tests/sped/layout.test.ts` fixam o conjunto atual de defeitos, então **eles vão falhar quando F1-T3 corrigir o dicionário — isso é intencional**, é o sinal de que a correção surtiu efeito; atualize as expectativas junto.
+
+Cuidado relacionado: em 19 registros a numeração dos campos tem buracos, então `campos[num - 1]` devolve o campo errado. Use `registro.campoPorNum`.
 
 ## Particularidades do ambiente (custaram tempo, não redescubra)
 
