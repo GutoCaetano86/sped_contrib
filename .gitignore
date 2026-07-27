@@ -1,0 +1,38 @@
+# dependências
+node_modules/
+.pnp
+.pnp.js
+
+# build
+.next/
+out/
+build/
+dist/
+
+# ambiente
+.env
+.env.local
+.env*.local
+
+# testes e cobertura
+coverage/
+*.log
+
+# extração do PDF (intermediários, ~10 MB — regeráveis via scripts/)
+scripts/chunks/
+scripts/words/
+__pycache__/
+*.pyc
+
+# arquivos fiscais reais — NUNCA versionar
+tests/fixtures/*.txt
+tests/fixtures/*.xlsx
+!tests/fixtures/efd_minimo.txt
+*.sped
+*.efd
+
+# sistema
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
