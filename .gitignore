@@ -36,3 +36,12 @@ tests/fixtures/*.xlsx
 Thumbs.db
 .vscode/
 .idea/
+
+# typescript / next
+# next-env.d.ts fica VERSIONADO de proposito: sem ele, `npm run typecheck`
+# falha em clone novo (nao ha declaracao dos modulos .css) enquanto o Next
+# nao roda pela primeira vez.
+*.tsbuildinfo
+
+# claude code — preferencias locais da maquina
+.claude/settings.local.json

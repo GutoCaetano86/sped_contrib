@@ -8,19 +8,31 @@ SaaS que converte arquivos da **EFD-Contribuições** (TXT delimitado por `|`) e
 
 Especificação completa em `docs/SPEC.md` (leia-a antes de implementar qualquer módulo — as seções relevantes são referenciadas abaixo). Roteiro de prompts prontos, na ordem de execução, em `docs/PROMPTS-CLAUDE-CODE.md`.
 
-## Estado atual — leia isto antes de rodar qualquer comando
+## Estado atual
 
-**Não existe código de aplicação ainda.** O repositório hoje só tem planejamento (`docs/SPEC.md`), o dicionário de leiaute (`data/`) e os scripts Python que o geraram (`scripts/`). Não há `package.json`, `app/`, `lib/` ou `tests/` — portanto **nenhum comando `npm run ...` funciona ainda**. Isso só muda a partir da tarefa F1-T1 (scaffolding do Next.js), descrita em `docs/PROMPTS-CLAUDE-CODE.md`.
+O scaffolding existe, mas **todo módulo de `lib/sped/` ainda é um stub `export {}`** com o contrato previsto em comentário. Nenhuma lógica de negócio foi implementada.
 
 - [x] Dicionário de leiaute extraído do guia oficial (192 registros, 1.624 campos)
-- [ ] Conferir os 19 registros listados em `revisao_manual` do JSON (tarefa F1-T3)
-- [ ] Fase 1 — núcleo do parser (`lib/sped/`, sem interface)
+- [x] F1-T1 — scaffolding (Next 15, TS strict, Tailwind 4, shadcn/ui, Vitest)
+- [ ] F1-T2 — `types.ts` + `layout.ts` (loader do dicionário)
+- [ ] F1-T3 — conferir os 19 registros em `revisao_manual` do JSON
+- [ ] F1-T4 a F1-T7 — parser, serializer, totalizers, validator
 - [ ] Fase 2 — conversão Excel
 - [ ] Fase 3 — SaaS (Supabase, auth, rotas, UI)
 
-Antes de propor scaffolding, confira `docs/PROMPTS-CLAUDE-CODE.md` na tarefa correspondente à etapa em que o projeto está — os critérios de aceite de cada tarefa são a definição de "pronto" deste projeto, não julgamento próprio.
+Antes de propor trabalho novo, confira em `docs/PROMPTS-CLAUDE-CODE.md` a tarefa correspondente à etapa em que o projeto está — os critérios de aceite de cada tarefa são a definição de "pronto" deste projeto, não julgamento próprio.
 
-## Comandos que funcionam hoje
+## Comandos
+
+```bash
+npm run dev              # desenvolvimento (localhost:3000)
+npm run test             # Vitest — testes em tests/**/*.test.ts
+npm run test:watch
+npm run typecheck        # tsc --noEmit
+npm run lint             # eslint
+npm run build
+npm run convert -- <arquivo>   # CLI interna de conversão (stub até F2-T4)
+```
 
 Regenerar o dicionário de leiaute (só necessário quando a Receita publicar nova versão do Guia Prático):
 
@@ -34,17 +46,13 @@ python build_layout.py
 
 Em máquinas mais lentas, quebre os intervalos de página em blocos de ~70 páginas (múltiplas chamadas de `dump_pages.py`/`dump_words.py` com `chunks/c2.json`, `words/w2.json` etc.; `build_layout.py` lê todos os `chunks/*.json` e `words/*.json` de uma vez via `glob`).
 
-## Comandos previstos (a partir de F1-T1 — ainda não existem)
+## Particularidades do ambiente (custaram tempo, não redescubra)
 
-```bash
-npm run dev              # desenvolvimento
-npm run test             # Vitest
-npm run test:watch
-npm run typecheck        # tsc --noEmit
-npm run lint
-npm run convert -- <arquivo>   # CLI interna de conversão (a partir de F2-T4)
-npm run build
-```
+- O **TypeScript é 6.x**, mais novo que o assumido pelo `create-next-app`. Duas consequências já tratadas: `baseUrl` está deprecado (usamos só `paths`), e imports de efeito colateral de `.css` exigem declaração — daí `types/estilos.d.ts`, já que o Next só declara `*.module.css`.
+- `next-env.d.ts` fica **versionado de propósito**: sem ele, `npm run typecheck` falha em clone novo enquanto o Next não rodar pela primeira vez.
+- `eslint-config-next` fica **pinado no major do `next`**. A linha 16 usa flat config nativo e quebra o `FlatCompat` do `eslint.config.mjs` com erro obscuro (`Converting circular structure to JSON`).
+- Existe um `package-lock.json` solto em `C:\Users\augus\`; por isso o `outputFileTracingRoot` explícito no `next.config.ts` — sem ele o Next infere a home do usuário como raiz do workspace.
+- `npm audit` acusa vulnerabilidades altas em `postcss` e `sharp`, ambas transitivas dentro do próprio `next`. O `fix` sugerido regride o Next para a 9.3.3 — **não rodar `npm audit fix --force`**.
 
 ## Stack
 
