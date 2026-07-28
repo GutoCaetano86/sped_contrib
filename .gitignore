@@ -48,3 +48,6 @@ Thumbs.db
 
 # saida intermediaria do build_layout.py (o dicionario valido fica em data/)
 scripts/layout_efd_contribuicoes.json
+
+# extracao temporaria do .xlsm de contraprova
+scripts/conferencia/.xlsm/
