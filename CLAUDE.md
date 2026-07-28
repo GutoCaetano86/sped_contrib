@@ -46,7 +46,17 @@ python build_layout.py
 
 Em máquinas mais lentas, quebre os intervalos de página em blocos de ~70 páginas (múltiplas chamadas de `dump_pages.py`/`dump_words.py` com `chunks/c2.json`, `words/w2.json` etc.; `build_layout.py` lê todos os `chunks/*.json` e `words/*.json` de uma vez via `glob`).
 
-## Defeitos do dicionário além da `revisao_manual` (achados em F1-T2)
+## Dicionário: o que já foi corrigido e o que falta
+
+**Corrigidos e validados contra arquivo aprovado pelo PVA** (F1-T3, parte 1) — os 8 registros em que a contagem de campos do dicionário divergia de arquivo real: `0111` (6, era 4), `0500` (9, era 8), `1100` (18, era 8), `9990` (2, era 3), `C500` (15, era 14), `D100` (23, era 22), `M110` (7, era 6), `M500` (15, era 14). Total de campos foi de 1.624 para 1.640. Hoje **zero divergências** contra os arquivos reais disponíveis.
+
+Cobertura empírica: os arquivos reais exercitam 74 dos 192 registros. Os outros **118 nunca aparecem** e só podem ser conferidos contra o guia.
+
+**Ainda quebrados** — os 15 restantes da `revisao_manual`: `C396`, `C810`, `C820`, `C880`, `D201`, `F500`, `F510`, `F550`, `F560`, `M220`, `P100`, `1300`, `1500`, `1620`, `1700`. Reprovam nos critérios de integridade (numeração com buraco, campo 01 ≠ `REG`, tipo não identificado). **O teste de integridade de F1-T3 só passa quando estes forem fechados.**
+
+Ferramentas: `python scripts/conferencia/tabela_guia.py --acha REGISTRO` acha a página, `node scripts/conferencia/compara_fontes.mjs` cruza com as transcrições antigas do autor.
+
+## Defeitos de NOME do dicionário (achados em F1-T2)
 
 A spec §2.4 afirma que os 171 registros fora da `revisao_manual` foram validados por três critérios (numeração sequencial, campo 01 = `REG`, tipo `C`/`N`). **Unicidade e integridade do nome do campo não estavam entre eles** — e é justamente o nome que serve de chave do índice O(1) e, na Fase 2, de cabeçalho de coluna no Excel. F1-T3 precisa cobrir também:
 

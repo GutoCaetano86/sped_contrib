@@ -20,8 +20,10 @@ describe('carregarLayout — totais', () => {
       (soma, r) => soma + r.campos.length,
       0,
     );
-    expect(layout.total_campos).toBe(1624);
-    expect(somaCampos).toBe(1624);
+    // 1.624 na extracao original; 1.640 depois de F1-T3 corrigir os 8
+    // registros que os arquivos reais aprovados pelo PVA provaram errados.
+    expect(layout.total_campos).toBe(1640);
+    expect(somaCampos).toBe(1640);
   });
 
   it('expoe as caracteristicas do arquivo e a ordem dos blocos', () => {
@@ -119,17 +121,35 @@ describe('carregarLayout — campo por nome', () => {
 });
 
 describe('carregarLayout — indice por numero de campo', () => {
-  it('respeita buracos na numeracao, onde campos[num - 1] erraria', () => {
-    // 0111 perdeu os campos 3 e 4 na extracao: numeracao vai 1, 2, 5, 6.
-    const reg = layout.registro('0111');
-    expect(reg?.campos.map((c) => c.num)).toEqual([1, 2, 5, 6]);
+  it('indexa pelo numero declarado, nao pela posicao no array', () => {
+    // Invariante: vale com ou sem buraco na numeracao, entao nao quebra
+    // conforme F1-T3 vai fechando os registros.
+    for (const reg of layout.registros.values()) {
+      for (const campo of reg.campos) {
+        expect(reg.campoPorNum.get(campo.num)).toBe(campo);
+      }
+      expect(reg.campoPorNum.size).toBe(reg.campos.length);
+    }
+  });
 
-    expect(reg?.campoPorNum.get(5)?.nome).toBe('REC_BRU_CUM');
-    expect(reg?.campoPorNum.get(6)?.nome).toBe('REC_BRU_TOTAL');
-    // A indexacao ingenua nao acharia nada nesta posicao.
-    expect(reg?.campos[4]).toBeUndefined();
-    // E os numeros ausentes continuam ausentes.
-    expect(reg?.campoPorNum.get(3)).toBeUndefined();
+  it('nos registros que ainda tem buraco, campos[num - 1] erraria', () => {
+    // Enquanto F1-T3 nao fecha, sobram registros com numeracao furada. Este
+    // teste se auto-desliga quando o ultimo for corrigido — e ai o teste de
+    // integridade do dicionario passa a cobrir o caso.
+    const comBuraco = [...layout.registros.values()].filter((r) =>
+      r.campos.some((c, i) => c.num !== i + 1),
+    );
+    if (comBuraco.length === 0) return;
+
+    for (const reg of comBuraco) {
+      const primeiroBuraco = reg.campos.find((c, i) => c.num !== i + 1);
+      expect(primeiroBuraco).toBeDefined();
+      const num = primeiroBuraco!.num;
+      // o indice acha pelo numero...
+      expect(reg.campoPorNum.get(num)?.nome).toBe(primeiroBuraco!.nome);
+      // ...e a indexacao ingenua devolveria outro campo, ou nada
+      expect(reg.campos[num - 1]).not.toBe(primeiroBuraco);
+    }
   });
 });
 

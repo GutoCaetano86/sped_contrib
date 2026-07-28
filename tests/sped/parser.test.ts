@@ -224,11 +224,12 @@ describe('parseTxt — arquivo minimo completo', () => {
     expect(r.nos.map((n) => n.ordem)).toEqual([...Array(13)].map((_, i) => i + 1));
   });
 
-  it('avisa que o 9990 tem 2 campos contra os 3 do dicionario', () => {
-    // Defeito conhecido do dicionario: o arquivo real aprovado pelo PVA tem
-    // 2 campos no 9990. Ver docs/DICIONARIO-ACHADOS.md.
+  it('nao gera nenhum aviso: as 13 linhas batem com o leiaute', () => {
+    // Antes de F1-T3 o 9990 avisava, porque o dicionario dizia 3 campos
+    // enquanto o arquivo aprovado pelo PVA tem 2. O dicionario foi
+    // corrigido; o silencio aqui e a prova.
     const r = parseTxt(fixture('efd_minimo.txt'), layout);
-    expect(r.avisos.filter((a) => a.registro === '9990')).toHaveLength(1);
+    expect(r.avisos).toEqual([]);
   });
 });
 
@@ -287,13 +288,23 @@ describe('parseTxt — arquivo real reduzido', () => {
     expect(Buffer.from(reconstruido.join('\r\n') + '\r\n', 'latin1').equals(bytes)).toBe(true);
   });
 
-  it('avisa nos 8 registros em que o dicionario diverge do arquivo real', () => {
+  it('nenhum registro do arquivo real diverge do dicionario em contagem de campos', () => {
+    // Antes de F1-T3 divergiam 8: 0111, 0500, 1100, 9990, C500, D100, M110
+    // e M500. Todos corrigidos contra o Guia Pratico e conferidos contra
+    // arquivo aprovado pelo PVA. Se algum voltar a divergir, o dicionario
+    // regrediu.
     const r = parseTxt(fixture('efd_reduzido.txt'), layout);
-    const comAviso = new Set(
-      r.avisos.filter((a) => /campos; leiaute preve/.test(a.mensagem)).map((a) => a.registro),
+    const divergentes = r.avisos
+      .filter((a) => /campos; leiaute preve/.test(a.mensagem))
+      .map((a) => a.registro);
+    expect(divergentes).toEqual([]);
+  });
+
+  it('so avisa do bloco I, que tem leiaute em ADE separado', () => {
+    const r = parseTxt(fixture('efd_reduzido.txt'), layout);
+    const desconhecidos = new Set(
+      r.avisos.filter((a) => /nao consta no leiaute/.test(a.mensagem)).map((a) => a.registro),
     );
-    expect(comAviso).toEqual(
-      new Set(['0111', '0500', '1100', '9990', 'C500', 'D100', 'M110', 'M500']),
-    );
+    expect(desconhecidos).toEqual(new Set(['I001', 'I990']));
   });
 });

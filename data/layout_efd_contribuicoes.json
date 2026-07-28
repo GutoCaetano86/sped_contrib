@@ -39,7 +39,7 @@
   "9"
  ],
  "total_registros": 192,
- "total_campos": 1624,
+ "total_campos": 1640,
  "revisao_manual": [
   {
    "registro": "0111",
@@ -653,7 +653,7 @@
    "nivel": 3,
    "ocorrencia": "1:1",
    "pagina_guia": 74,
-   "qtd_campos": 4,
+   "qtd_campos": 6,
    "campos": [
     {
      "num": 1,
@@ -667,8 +667,28 @@
     },
     {
      "num": 2,
-     "nome": "REC_BRU_NCUM_TRIB",
-     "descricao": "Receita Bruta Não-Cumulativa - Mercado Interno",
+     "nome": "REC_BRU_NCUM_TRIB_MI",
+     "descricao": "Receita Bruta Não-Cumulativa - Tributada no Mercado Interno",
+     "tipo": "N",
+     "tamanho": 0,
+     "tamanho_fixo": false,
+     "decimais": 2,
+     "obrigatorio": true
+    },
+    {
+     "num": 3,
+     "nome": "REC_BRU_NCUM_NT_MI",
+     "descricao": "Receita Bruta Não-Cumulativa – Não Tributada no Mercado Interno (Vendas com suspensão, alíquota zero, isenção e sem incidência das contribuições)",
+     "tipo": "N",
+     "tamanho": 0,
+     "tamanho_fixo": false,
+     "decimais": 2,
+     "obrigatorio": true
+    },
+    {
+     "num": 4,
+     "nome": "REC_BRU_NCUM_EXP",
+     "descricao": "Receita Bruta Não-Cumulativa – Exportação",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -1455,7 +1475,7 @@
    "nivel": 2,
    "ocorrencia": "Vários (por arquivo)",
    "pagina_guia": 89,
-   "qtd_campos": 8,
+   "qtd_campos": 9,
    "campos": [
     {
      "num": 1,
@@ -1494,6 +1514,16 @@
      "tipo": "C",
      "tamanho": 1,
      "tamanho_fixo": true,
+     "decimais": 0,
+     "obrigatorio": true
+    },
+    {
+     "num": 5,
+     "nome": "NIVEL",
+     "descricao": "Nível da conta analítica/grupo de contas.",
+     "tipo": "N",
+     "tamanho": 5,
+     "tamanho_fixo": false,
      "decimais": 0,
      "obrigatorio": true
     },
@@ -5688,7 +5718,7 @@
    "nivel": 3,
    "ocorrencia": "1:N",
    "pagina_guia": 165,
-   "qtd_campos": 14,
+   "qtd_campos": 15,
    "campos": [
     {
      "num": 1,
@@ -5828,6 +5858,16 @@
      "tamanho": 0,
      "tamanho_fixo": false,
      "decimais": 2,
+     "obrigatorio": false
+    },
+    {
+     "num": 15,
+     "nome": "CHV_DOCe",
+     "descricao": "Chave do Documento Fiscal Eletrônico",
+     "tipo": "N",
+     "tamanho": 44,
+     "tamanho_fixo": true,
+     "decimais": 0,
      "obrigatorio": false
     }
    ]
@@ -7447,7 +7487,7 @@
    "nivel": 3,
    "ocorrencia": "1:N",
    "pagina_guia": 194,
-   "qtd_campos": 22,
+   "qtd_campos": 23,
    "campos": [
     {
      "num": 1,
@@ -7565,6 +7605,16 @@
      "descricao": "aquisição ou da prestação do serviço",
      "tipo": "N",
      "tamanho": 8,
+     "tamanho_fixo": true,
+     "decimais": 0,
+     "obrigatorio": false
+    },
+    {
+     "num": 13,
+     "nome": "TP_CT-e",
+     "descricao": "Tipo de Conhecimento de Transporte Eletrônico conforme definido no Manual de Integração do CT-e",
+     "tipo": "N",
+     "tamanho": 1,
      "tamanho_fixo": true,
      "decimais": 0,
      "obrigatorio": false
@@ -12645,7 +12695,7 @@
    "nivel": 3,
    "ocorrencia": "1:N",
    "pagina_guia": 303,
-   "qtd_campos": 6,
+   "qtd_campos": 7,
    "campos": [
     {
      "num": 1,
@@ -12675,6 +12725,16 @@
      "tamanho": 0,
      "tamanho_fixo": false,
      "decimais": 2,
+     "obrigatorio": true
+    },
+    {
+     "num": 4,
+     "nome": "COD_AJ",
+     "descricao": "Código do ajuste, conforme a Tabela indicada no item 4.3.8.",
+     "tipo": "C",
+     "tamanho": 2,
+     "tamanho_fixo": true,
+     "decimais": 0,
      "obrigatorio": true
     },
     {
@@ -13899,7 +13959,7 @@
    "nivel": 2,
    "ocorrencia": "Vários (por arquivo)",
    "pagina_guia": 329,
-   "qtd_campos": 14,
+   "qtd_campos": 15,
    "campos": [
     {
      "num": 1,
@@ -13917,6 +13977,16 @@
      "descricao": "Código de Tipo de Crédito apurado no período, conforme a Tabela 4.3.6. 03 IND_CRED_ORI Indicador de Crédito Oriundo de: 0 – Operações próprias N 001* - S 1 – Evento de incorporação, cisão ou fusão",
      "tipo": "C",
      "tamanho": 3,
+     "tamanho_fixo": true,
+     "decimais": 0,
+     "obrigatorio": true
+    },
+    {
+     "num": 3,
+     "nome": "IND_CRED_ORI",
+     "descricao": "Indicador de Crédito Oriundo de: 0 – Operações próprias; 1 – Evento de incorporação, cisão ou fusão",
+     "tipo": "N",
+     "tamanho": 1,
      "tamanho_fixo": true,
      "decimais": 0,
      "obrigatorio": true
@@ -16518,7 +16588,7 @@
    "nivel": 2,
    "ocorrencia": "Vários (por arquivo)",
    "pagina_guia": 384,
-   "qtd_campos": 8,
+   "qtd_campos": 18,
    "campos": [
     {
      "num": 1,
@@ -16533,7 +16603,7 @@
     {
      "num": 2,
      "nome": "PER_APU_CRED",
-     "descricao": "Período de Apuração do Crédito (MM/AAAA) 03 ORIG_CRED Indicador da origem do crédito: S 01 – Crédito decorrente de operações próprias; N 002* - 02 – Crédito transferido por pessoa jurídica sucedida. 04 CNPJ_SUC CNPJ da pessoa jurídica cedente do crédito (se N N 014* - ORIG_CRED = 02). 05 COD_CRED Código do Tipo do Crédito, conforme Tabela S N 003* - 4.3.6.",
+     "descricao": "Período de Apuração do Crédito (MM/AAAA)",
      "tipo": "N",
      "tamanho": 6,
      "tamanho_fixo": false,
@@ -16543,7 +16613,7 @@
     {
      "num": 3,
      "nome": "ORIG_CRED",
-     "descricao": "da origem do crédito: Crédito decorrente de operações Crédito transferido por pessoa jurídica",
+     "descricao": "Indicador da origem do crédito: 01 – Crédito decorrente de operações próprias; 02 – Crédito transferido por pessoa jurídica sucedida.",
      "tipo": "N",
      "tamanho": 2,
      "tamanho_fixo": true,
@@ -16552,13 +16622,23 @@
     },
     {
      "num": 4,
-     "nome": "CNPJ_SUCCNPJ",
-     "descricao": "da pessoa jurídica cedente do crédito ORIG_CRED = 02).",
+     "nome": "CNPJ_SUC",
+     "descricao": "CNPJ da pessoa jurídica cedente do crédito (se ORIG_CRED = 02).",
      "tipo": "N",
      "tamanho": 14,
      "tamanho_fixo": true,
      "decimais": 0,
      "obrigatorio": false
+    },
+    {
+     "num": 5,
+     "nome": "COD_CRED",
+     "descricao": "Código do Tipo do Crédito, conforme Tabela 4.3.6.",
+     "tipo": "N",
+     "tamanho": 3,
+     "tamanho_fixo": true,
+     "decimais": 0,
+     "obrigatorio": true
     },
     {
      "num": 6,
@@ -16592,13 +16672,103 @@
     },
     {
      "num": 9,
-     "nome": "VL_CRED_DESC",
-     "descricao": "Valor do Crédito utilizado mediante Desconto, _PA_ANT em Período(s) Anterior(es). VL_CRED_PER_ Valor do Crédito utilizado mediante Pedido de N - 02 N 10 PA_ANT Ressarcimento, em Período(s) Anterior(es). VL_CRED_DCO Valor do Crédito utilizado mediante Declaração N - 02 N 11 MP_PA_ANT de Compensação Intermediária (Crédito de Exportação), em Período(s) Anterior(es). SD_CRED_DISP_ Saldo do Crédito Dis",
+     "nome": "VL_CRED_DESC_PA_ANT",
+     "descricao": "Valor do Crédito utilizado mediante Desconto, em Período(s) Anterior(es).",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
      "decimais": 2,
      "obrigatorio": true
+    },
+    {
+     "num": 10,
+     "nome": "VL_CRED_PER_PA_ANT",
+     "descricao": "Valor do Crédito utilizado mediante Pedido de Ressarcimento, em Período(s) Anterior(es).",
+     "tipo": "N",
+     "tamanho": 0,
+     "tamanho_fixo": false,
+     "decimais": 2,
+     "obrigatorio": false
+    },
+    {
+     "num": 11,
+     "nome": "VL_CRED_DCOMP_PA_ANT",
+     "descricao": "Valor do Crédito utilizado mediante Declaração de Compensação Intermediária (Crédito de Exportação), em Período(s) Anterior(es).",
+     "tipo": "N",
+     "tamanho": 0,
+     "tamanho_fixo": false,
+     "decimais": 2,
+     "obrigatorio": false
+    },
+    {
+     "num": 12,
+     "nome": "SD_CRED_DISP_EFD",
+     "descricao": "Saldo do Crédito Disponível para Utilização neste Período de Escrituração (08 – 09 – 10 - 11).",
+     "tipo": "N",
+     "tamanho": 0,
+     "tamanho_fixo": false,
+     "decimais": 2,
+     "obrigatorio": true
+    },
+    {
+     "num": 13,
+     "nome": "VL_CRED_DESC_EFD",
+     "descricao": "Valor do Crédito descontado neste período de escrituração.",
+     "tipo": "N",
+     "tamanho": 0,
+     "tamanho_fixo": false,
+     "decimais": 2,
+     "obrigatorio": false
+    },
+    {
+     "num": 14,
+     "nome": "VL_CRED_PER_EFD",
+     "descricao": "Valor do Crédito objeto de Pedido de Ressarcimento (PER) neste período de escrituração.",
+     "tipo": "N",
+     "tamanho": 0,
+     "tamanho_fixo": false,
+     "decimais": 2,
+     "obrigatorio": false
+    },
+    {
+     "num": 15,
+     "nome": "VL_CRED_DCOMP_EFD",
+     "descricao": "Valor do Crédito utilizado mediante Declaração de Compensação Intermediária neste período de escrituração.",
+     "tipo": "N",
+     "tamanho": 0,
+     "tamanho_fixo": false,
+     "decimais": 2,
+     "obrigatorio": false
+    },
+    {
+     "num": 16,
+     "nome": "VL_CRED_TRANS",
+     "descricao": "Valor do crédito transferido em evento de cisão, fusão ou incorporação.",
+     "tipo": "N",
+     "tamanho": 0,
+     "tamanho_fixo": false,
+     "decimais": 2,
+     "obrigatorio": false
+    },
+    {
+     "num": 17,
+     "nome": "VL_CRED_OUT",
+     "descricao": "Valor do crédito utilizado por outras formas.",
+     "tipo": "N",
+     "tamanho": 0,
+     "tamanho_fixo": false,
+     "decimais": 2,
+     "obrigatorio": false
+    },
+    {
+     "num": 18,
+     "nome": "SLD_CRED_FIM",
+     "descricao": "Saldo de créditos a utilizar em período de apuração futuro (12 – 13 – 14 – 15 – 16 - 17).",
+     "tipo": "N",
+     "tamanho": 0,
+     "tamanho_fixo": false,
+     "decimais": 2,
+     "obrigatorio": false
     }
    ]
   },
@@ -18508,7 +18678,7 @@
    "nivel": 1,
    "ocorrencia": "um (por arquivo)",
    "pagina_guia": 415,
-   "qtd_campos": 3,
+   "qtd_campos": 2,
    "campos": [
     {
      "num": 1,
@@ -18523,17 +18693,7 @@
     {
      "num": 2,
      "nome": "QTD_LIN_9",
-     "descricao": "Indicador de movimento: Bloco com dados informados; Bloco sem dados informados.",
-     "tipo": "N",
-     "tamanho": 1,
-     "tamanho_fixo": true,
-     "decimais": 0,
-     "obrigatorio": true
-    },
-    {
-     "num": 3,
-     "nome": "QTD_REG_BLC",
-     "descricao": "de registros do tipo informado",
+     "descricao": "Quantidade total de linhas do Bloco 9.",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
