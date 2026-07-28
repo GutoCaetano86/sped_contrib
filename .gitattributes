@@ -1,0 +1,7 @@
+# Fixtures da EFD-Contribuicoes: a quebra de linha CRLF faz parte do
+# conteudo (regra inviolavel 2 — arquivo com LF e recusado pelo PVA).
+# Sem `-text` o git normalizaria para LF no indice e um checkout em Linux
+# devolveria o arquivo com LF, quebrando o round-trip byte a byte que e o
+# teste de aceite do projeto (spec 9.2).
+tests/fixtures/*.txt -text
+tests/fixtures/*.xlsx binary

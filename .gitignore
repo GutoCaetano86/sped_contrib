@@ -28,6 +28,11 @@ __pycache__/
 tests/fixtures/*.txt
 tests/fixtures/*.xlsx
 !tests/fixtures/efd_minimo.txt
+# efd_reduzido.txt e derivado de arquivo real, mas passou por
+# scripts/anonimiza_efd.mjs e depois por scripts/reduz_fixture.mjs: 153
+# linhas, sem dado identificavel, conferido. O efd_real_validado.txt
+# anonimizado completo (17 MB) fica de fora de proposito.
+!tests/fixtures/efd_reduzido.txt
 *.sped
 *.efd
 
