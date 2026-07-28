@@ -3,15 +3,41 @@
 Constroi o dicionario de leiaute da EFD-Contribuicoes a partir do
 Guia Pratico (PDF da Receita Federal).
 
-Estrategia: parser POSICIONAL. As tabelas de leiaute do guia tem o
-cabecalho "Nº | Campo | Descricao | Tipo | Tam | Dec | Obrig". Usamos as
-coordenadas X desse cabecalho para definir as faixas de cada coluna e
-atribuimos cada palavra da pagina a uma coluna. Isso resolve os casos em
-que o nome do campo ou o tipo/tamanho ficam quebrados em varias linhas.
+!!! INCOMPLETO — NAO RODAR PARA REGERAR data/layout_efd_contribuicoes.json !!!
 
-Entradas:
-    chunks/c*.json  (texto das paginas)   -> dump_pages.py
-    words/w*.json   (palavras + coords)   -> dump_words.py
+    Esta versao troca o parser posicional pela leitura de tabela com borda.
+    Conserta os nomes estilhacados (ver mais abaixo), mas PERDE cobertura:
+    180 registros / 1.281 campos, contra 192 / 1.624 do dicionario em uso.
+    0111 e D100 somem por inteiro e o 0000 fica com buracos, porque nem
+    toda tabela do guia tem borda desenhada.
+
+    O caminho e HIBRIDO: usar a celula com borda quando existir e cair no
+    parser posicional (com o regex de nome corrigido) quando nao existir,
+    fundindo os dois por numero de campo. Enquanto isso nao estiver feito,
+    o dicionario valido continua sendo o que esta versionado em data/.
+
+Estrategia: as tabelas de leiaute do guia sao TABELAS COM BORDA. O
+pdfplumber devolve as celulas ja delimitadas em `extract_tables()`, o que
+resolve de uma vez os dois defeitos da versao anterior deste script, que
+montava os campos por coordenada:
+
+  1. Nome de campo com acento, minuscula ou hifen (NIVEL do 0500,
+     TP_CT-e do D100) era rejeitado por um regex [A-Z0-9_] e o campo
+     inteiro sumia.
+  2. Quando a linha do numero e a linha do nome nao coincidiam em Y, o
+     fragmento do nome era concatenado no campo anterior. Era assim que
+     REG + VL_REC_CAIXA viravam "REGVL_REC_CAIXA" e sobrava "XA" no
+     campo seguinte.
+
+Com celula delimitada, o nome vem inteiro no formato "VL_REC_CAI\\nXA":
+basta remover a quebra de linha.
+
+Cada tabela e associada ao seu registro pela descricao do campo 01, que no
+guia e sempre `Texto fixo contendo "XXXX"`. Tabela que continua na pagina
+seguinte nao repete o cabecalho e e anexada ao registro corrente.
+
+Entrada:
+    chunks/c*.json  (texto + tables por pagina)  -> dump_pages.py
 
 Saida:
     layout_efd_contribuicoes.json
@@ -19,289 +45,178 @@ Saida:
 import glob
 import json
 import re
-from collections import Counter, defaultdict
+from collections import Counter
 
 RE_REG_TITULO = re.compile(r"^Registro\s+([0-9A-Z][0-9A-Z]{3}):\s*(.+)$", re.MULTILINE)
 RE_NIVEL = re.compile(r"N[íi]vel\s+hier[áa]rquico\s*[-–]\s*(\d+)")
 RE_OCOR = re.compile(r"Ocorr[êe]ncia\s*[-–]\s*([^\n]+)")
-RE_NUM = re.compile(r"^\d{2}$")
-RE_TIPO = re.compile(r"^[CN]$")
-RE_TAM = re.compile(r"^(\d{1,4}\*?|[-–])$")
-RE_DEC = re.compile(r"^(\d{1,2}|[-–])$")
-RE_OBRIG = re.compile(r"^[SNO]$")
-# fragmento de nome de campo: precisa conter ao menos uma letra, para nao
-# absorver o numero da linha seguinte (ex.: "01") dentro do nome.
-RE_NOME_FRAG = re.compile(r"^(?=[A-Z0-9_]*[A-Z])[A-Z][A-Z0-9_]*$")
-
-COLS = ["num", "nome", "desc", "tipo", "tam", "dec", "obrig"]
+RE_NUM = re.compile(r"^\d{1,2}$")
+# ancora que identifica de que registro e a tabela
+RE_ANCORA_REG = re.compile(r"Texto\s+fixo\s+contendo\s*[“\"']?\s*([0-9A-Z]{4})")
+RE_CAB = ("Campo", "Tipo")
 
 
 def limpa(s):
     return re.sub(r"\s+", " ", (s or "").replace("\n", " ")).strip()
 
 
-def agrupa_linhas(palavras, tol=3.0):
-    """Agrupa palavras por coordenada Y aproximada."""
-    linhas = defaultdict(list)
-    chaves = []
-    for w in sorted(palavras, key=lambda w: (w["y"], w["x0"])):
-        alvo = next((k for k in chaves if abs(k - w["y"]) <= tol), None)
-        if alvo is None:
-            alvo = w["y"]
-            chaves.append(alvo)
-        linhas[alvo].append(w)
-    return [(y, sorted(linhas[y], key=lambda w: w["x0"])) for y in sorted(linhas)]
+def limpa_nome(s):
+    """Nome de campo nao tem espaco: a quebra de linha e so o PDF embrulhando."""
+    return re.sub(r"\s+", "", s or "")
 
 
-def acha_cabecalhos(linhas):
-    """Retorna [(y, limites_de_coluna)] para cada cabecalho de tabela na pagina."""
-    saida = []
-    for y, ws in linhas:
-        textos = [w["t"] for w in ws]
-        if len(textos) >= 6 and textos[0] in ("Nº", "N°", "No") and "Campo" in textos[:3]:
-            pos = {}
-            for w in ws:
-                t = w["t"]
-                if t in ("Nº", "N°", "No"):
-                    pos["num"] = w
-                elif t == "Campo":
-                    pos["nome"] = w
-                elif t.startswith("Descri"):
-                    pos["desc"] = w
-                elif t == "Tipo":
-                    pos["tipo"] = w
-                elif t == "Tam":
-                    pos["tam"] = w
-                elif t == "Dec":
-                    pos["dec"] = w
-                elif t.startswith("Obrig"):
-                    pos["obrig"] = w
-            if len(pos) == 7:
-                # fronteira = ponto medio entre o fim de uma coluna e o inicio da proxima
-                lim = []
-                for a, b in zip(COLS, COLS[1:]):
-                    lim.append((pos[a]["x1"] + pos[b]["x0"]) / 2)
-                saida.append((y, lim))
-    return saida
+def e_cabecalho(linha):
+    textos = [limpa(c) for c in linha]
+    return all(any(alvo == t for t in textos) for alvo in RE_CAB)
 
 
-def coluna_de(w, lim):
-    x = (w["x0"] + w["x1"]) / 2
-    for i, fronteira in enumerate(lim):
-        if x < fronteira:
-            return COLS[i]
-    return COLS[-1]
-
-
-def celulas_da_pagina(palavras, y_min=0, y_max=1e9):
-    """Devolve lista de linhas: {'num':[...], 'nome':[...], ...} em ordem de leitura."""
-    linhas = agrupa_linhas(palavras)
-    cabs = acha_cabecalhos(linhas)
-    if not cabs:
-        return []
-    saida = []
-    for idx, (y_cab, lim) in enumerate(cabs):
-        y_fim = cabs[idx + 1][0] if idx + 1 < len(cabs) else 1e9
-        for y, ws in linhas:
-            if y <= y_cab or y >= y_fim or not (y_min <= y <= y_max):
-                continue
-            cel = defaultdict(list)
-            for w in ws:
-                cel[coluna_de(w, lim)].append(w["t"])
-            saida.append({c: cel.get(c, []) for c in COLS})
-    return saida
-
-
-def fim_da_tabela(linha):
-    """Detecta o rodape do registro (Observacoes / Nivel hierarquico / Campo NN -)."""
-    txt = " ".join(linha["num"] + linha["nome"] + linha["desc"])
-    return bool(
-        re.match(r"^(Observa|N[íi]vel\s+hier|Ocorr[êe]ncia|Campo\s+\d{2}\s*[-–])", txt)
-    )
-
-
-def monta_campos(linhas_cel):
-    campos, atual = [], None
-    for ln in linhas_cel:
-        if fim_da_tabela(ln):
-            # rodape do registro (Observacoes / Nivel / notas "Campo NN - ...").
-            # encerra o campo corrente sem descartar o que ja foi lido.
-            if atual:
-                campos.append(atual)
-                atual = None
-            continue
-        nums = [t for t in ln["num"] if RE_NUM.match(t)]
-        if nums:
-            if atual:
-                campos.append(atual)
-            atual = {
-                "num": int(nums[0]),
-                "nome": "",
-                "descricao": "",
-                "tipo": "",
-                "tamanho": None,
-                "tamanho_fixo": False,
-                "decimais": None,
-                "obrigatorio": None,
-            }
-        if atual is None:
-            continue
-        # nome pode vir fragmentado em varias linhas
-        for t in ln["nome"]:
-            if RE_NOME_FRAG.match(t):
-                atual["nome"] += t
-        if ln["desc"]:
-            atual["descricao"] += " " + " ".join(ln["desc"])
-        for t in ln["tipo"]:
-            if RE_TIPO.match(t) and not atual["tipo"]:
-                atual["tipo"] = t
-        for t in ln["tam"]:
-            if RE_TAM.match(t) and atual["tamanho"] is None:
-                atual["tamanho_fixo"] = "*" in t
-                v = t.replace("*", "").replace("–", "").replace("-", "")
-                atual["tamanho"] = int(v) if v.isdigit() else 0
-        for t in ln["dec"]:
-            if RE_DEC.match(t) and atual["decimais"] is None:
-                v = t.replace("–", "").replace("-", "")
-                atual["decimais"] = int(v) if v.isdigit() else 0
-        for t in ln["obrig"]:
-            if RE_OBRIG.match(t) and atual["obrigatorio"] is None:
-                atual["obrigatorio"] = t == "S"
-    if atual:
-        campos.append(atual)
-
-    vistos, final = set(), []
-    for c in sorted(campos, key=lambda x: x["num"]):
-        if c["num"] in vistos or not c["nome"]:
-            continue
-        vistos.add(c["num"])
-        c["descricao"] = limpa(c["descricao"])[:400]
-        c["tamanho"] = c["tamanho"] or 0
-        c["decimais"] = c["decimais"] or 0
-        c["obrigatorio"] = bool(c["obrigatorio"])
-        final.append(c)
-    return final
-
-
-# ---------------------------------------------------------------------------
-# Parser alternativo (baseado no texto linear). Serve de rede de seguranca:
-# alguns registros do guia tem cabecalho de tabela fora do padrao, e nesses
-# casos o parser posicional nao encontra a tabela.
-# ---------------------------------------------------------------------------
-RE_CAMPO_TXT = re.compile(
-    r"^(?P<num>\d{2})\s+"
-    r"(?P<nome>[A-Z][A-Z0-9_]*)[;:.]?\s+"
-    r"(?P<desc>.*?)\s+"
-    r"(?P<tipo>[CN])\s+"
-    r"(?P<tam>\d{1,4}\s?\*?|[-–])\s+"
-    r"(?P<dec>[-–]|\d{1,2})\s+"
-    r"(?P<obrig>[SNO])\s*$"
-)
-RE_QUEBRA_NOME = re.compile(r"^([A-Z][A-Z0-9_]{0,11})(?:\s+(.*))?$")
-
-
-def monta_campos_texto(texto):
-    campos, atual, apos_def = [], None, False
-    for linha in texto.split("\n"):
-        s = linha.strip()
-        if not s or s.startswith("Guia Prático da EFD") or s.startswith("Nº Campo"):
-            continue
-        m = RE_CAMPO_TXT.match(s)
-        if m:
-            if atual:
-                campos.append(atual)
-            tam = m.group("tam").replace(" ", "")
-            fixo = "*" in tam
-            tam = re.sub(r"[*\-–]", "", tam)
-            dec = re.sub(r"[\-–]", "", m.group("dec")).strip()
-            atual = {
-                "num": int(m.group("num")),
-                "nome": m.group("nome"),
-                "descricao": limpa(m.group("desc")),
-                "tipo": m.group("tipo"),
-                "tamanho": int(tam) if tam.isdigit() else 0,
-                "tamanho_fixo": fixo,
-                "decimais": int(dec) if dec.isdigit() else 0,
-                "obrigatorio": m.group("obrig") == "S",
-            }
-            apos_def = True
-            continue
-        if atual is None:
-            continue
-        if apos_def and len(atual["nome"]) >= 9:
-            q = RE_QUEBRA_NOME.match(s)
-            if q:
-                atual["nome"] += q.group(1)
-                if q.group(2):
-                    atual["descricao"] += " " + limpa(q.group(2))
-                apos_def = False
-                continue
-        atual["descricao"] += " " + limpa(s)
-        apos_def = False
-    if atual:
-        campos.append(atual)
-    vistos, final = set(), []
-    for c in sorted(campos, key=lambda x: x["num"]):
-        if c["num"] in vistos:
-            continue
-        vistos.add(c["num"])
-        c["descricao"] = limpa(c["descricao"])[:400]
-        final.append(c)
-    return final
-
-
-def funde(pos, txt):
-    """Une os dois parsers: base = o que tiver mais campos; buracos vem do outro."""
-    base, extra = (pos, txt) if len(pos) >= len(txt) else (txt, pos)
-    por_num = {c["num"]: c for c in base}
-    for c in extra:
-        if c["num"] not in por_num:
-            por_num[c["num"]] = c
-        else:
-            # completa lacunas pontuais (nome truncado, tipo vazio)
-            a = por_num[c["num"]]
-            if len(c["nome"]) > len(a["nome"]):
-                a["nome"] = c["nome"]
-            if not a["tipo"] and c["tipo"]:
-                a["tipo"] = c["tipo"]
-            if not a["descricao"]:
-                a["descricao"] = c["descricao"]
-    campos = [por_num[n] for n in sorted(por_num)]
-    # descarta numeros muito acima da sequencia (linhas de exemplo do guia
-    # que o OCR posicional confunde com campos)
-    final, esperado = [], 1
-    for c in campos:
-        if c["num"] - esperado > 2:
-            break
-        final.append(c)
-        esperado = c["num"] + 1
-    return final
-
-
-def revisao_manual(registros):
-    """Lista registros cuja numeracao de campos ficou com lacunas.
-
-    Sao poucos casos em que o PDF quebra a tabela de forma atipica. O
-    desenvolvedor deve conferir esses registros na pagina indicada do guia
-    antes de liberar o parser para producao.
+def normaliza_colunas(tabela):
     """
-    pendentes = []
+    Descarta colunas vazias em todas as linhas.
+
+    Conforme a pagina, o pdfplumber devolve a mesma tabela com 7 colunas ou
+    com 14 — nesse caso intercalando uma coluna vazia por causa das duas
+    bordas de cada celula. Sem isto, metade das tabelas do guia nao casa com
+    o formato esperado e o registro inteiro se perde.
+    """
+    if not tabela:
+        return tabela
+    largura = max(len(ln) for ln in tabela)
+    normal = [list(ln) + [None] * (largura - len(ln)) for ln in tabela]
+    usadas = [i for i in range(largura) if any(limpa(ln[i]) for ln in normal)]
+    return [[ln[i] for i in usadas] for ln in normal]
+
+
+def monta_campo(linha):
+    """Converte uma linha de 7 celulas em um campo, ou None se nao for campo."""
+    cels = [(c or "") for c in linha]
+    if len(cels) < 7:
+        return None
+    num_txt = limpa(cels[0])
+    if not RE_NUM.match(num_txt):
+        return None
+
+    nome = limpa_nome(cels[1])
+    if not nome:
+        return None
+
+    tipo = limpa(cels[3]).upper()
+    tipo = tipo if tipo in ("C", "N") else ""
+
+    tam_txt = limpa(cels[4])
+    fixo = "*" in tam_txt
+    tam_dig = re.sub(r"[^\d]", "", tam_txt)
+    tamanho = int(tam_dig) if tam_dig else 0
+
+    dec_dig = re.sub(r"[^\d]", "", limpa(cels[5]))
+    decimais = int(dec_dig) if dec_dig else 0
+
+    obrig = limpa(cels[6]).upper()
+
+    return {
+        "num": int(num_txt),
+        "nome": nome,
+        "descricao": limpa(cels[2])[:400],
+        "tipo": tipo,
+        "tamanho": tamanho,
+        "tamanho_fixo": fixo,
+        "decimais": decimais,
+        "obrigatorio": obrig == "S",
+    }
+
+
+def coleta_campos(paginas):
+    """Percorre as tabelas de todas as paginas e agrupa os campos por registro."""
+    por_registro = {}
+    corrente = None
+
+    for p in paginas:
+        for tabela in p.get("tables") or []:
+            if not tabela:
+                continue
+            linhas = normaliza_colunas(tabela)
+            # pula o cabecalho, quando a tabela o traz
+            idx_cab = next((i for i, ln in enumerate(linhas) if e_cabecalho(ln)), None)
+            if idx_cab is not None:
+                linhas = linhas[idx_cab + 1:]
+
+            for linha in linhas:
+                campo = monta_campo(linha)
+                if campo is None:
+                    continue
+                # o campo 01 identifica a que registro a tabela pertence
+                if campo["num"] == 1:
+                    m = RE_ANCORA_REG.search(campo["descricao"])
+                    if m:
+                        corrente = m.group(1)
+                        por_registro.setdefault(corrente, {"campos": [], "pagina": p["page"] + 1})
+                if corrente is None:
+                    continue
+                por_registro[corrente]["campos"].append(campo)
+
+    # remove numero repetido, mantendo a primeira ocorrencia, e ordena
+    for dados in por_registro.values():
+        vistos, final = set(), []
+        for c in sorted(dados["campos"], key=lambda x: x["num"]):
+            if c["num"] in vistos:
+                continue
+            vistos.add(c["num"])
+            final.append(c)
+        dados["campos"] = final
+    return por_registro
+
+
+def coleta_metadados(paginas):
+    """titulo / nivel / ocorrencia, lidos do texto corrido de cada registro."""
+    meta = {}
+    corrente = None
+    buffer = {}
+    for p in paginas:
+        texto = p["text"]
+        marcas = list(RE_REG_TITULO.finditer(texto))
+        if not marcas:
+            if corrente:
+                buffer[corrente] = buffer.get(corrente, "") + "\n" + texto
+            continue
+        if corrente and marcas[0].start() > 0:
+            buffer[corrente] = buffer.get(corrente, "") + "\n" + texto[: marcas[0].start()]
+        for i, m in enumerate(marcas):
+            corrente = m.group(1)
+            fim = marcas[i + 1].start() if i + 1 < len(marcas) else len(texto)
+            meta.setdefault(corrente, {"titulo": limpa(m.group(2)), "pagina": p["page"] + 1})
+            buffer[corrente] = buffer.get(corrente, "") + "\n" + texto[m.start(): fim]
+
+    for reg, texto in buffer.items():
+        n = RE_NIVEL.search(texto)
+        o = RE_OCOR.search(texto)
+        meta.setdefault(reg, {"titulo": None, "pagina": 0})
+        meta[reg]["nivel"] = int(n.group(1)) if n else None
+        meta[reg]["ocorrencia"] = limpa(o.group(1)) if o else None
+    return meta
+
+
+def pendencias(registros):
+    """Registros que ainda nao passam nos criterios de integridade."""
+    saida = []
     for k, v in registros.items():
         campos = v["campos"]
         nums = [c["num"] for c in campos]
         if not nums:
             continue
         motivos = []
-        faltando = [n for n in range(1, max(nums) + 1) if n not in nums]
-        if faltando:
-            motivos.append(f"campos ausentes: {faltando}")
-        if not campos or campos[0]["nome"] != "REG":
+        if nums != list(range(1, len(nums) + 1)):
+            faltando = [n for n in range(1, max(nums) + 1) if n not in nums]
+            motivos.append(f"numeracao nao sequencial; ausentes: {faltando}")
+        if campos[0]["nome"] != "REG":
             motivos.append("campo 01 deveria ser REG")
         sem_tipo = [c["num"] for c in campos if c["tipo"] not in ("C", "N")]
         if sem_tipo:
             motivos.append(f"tipo nao identificado nos campos {sem_tipo}")
+        repetidos = [n for n, q in Counter(c["nome"] for c in campos).items() if q > 1]
+        if repetidos:
+            motivos.append(f"nome de campo repetido: {sorted(repetidos)}")
         if motivos:
-            pendentes.append(
+            saida.append(
                 {
                     "registro": k,
                     "pagina_guia": v["pagina_guia"],
@@ -309,76 +224,33 @@ def revisao_manual(registros):
                     "motivos": motivos,
                 }
             )
-    return pendentes
+    return saida
 
 
 def main():
-    textos = {}
+    paginas = []
     for a in sorted(glob.glob("chunks/c*.json")):
-        for p in json.load(open(a, encoding="utf-8")):
-            textos[p["page"]] = p["text"]
-    palavras = {}
-    for a in sorted(glob.glob("words/w*.json")):
-        for p in json.load(open(a, encoding="utf-8")):
-            palavras[p["page"]] = p["words"]
+        paginas.extend(json.load(open(a, encoding="utf-8")))
+    paginas.sort(key=lambda p: p["page"])
 
-    paginas = sorted(set(textos) & set(palavras))
+    campos_por_reg = coleta_campos(paginas)
+    meta = coleta_metadados(paginas)
 
     registros = {}
-    reg = titulo = pag_ini = None
-    buf_txt, buf_cel = [], []
-
-    def fecha():
-        nonlocal reg, titulo, pag_ini, buf_txt, buf_cel
-        if reg:
-            texto = "\n".join(buf_txt)
-            campos = funde(monta_campos(buf_cel), monta_campos_texto(texto))
-            if campos:
-                n = RE_NIVEL.search(texto)
-                o = RE_OCOR.search(texto)
-                registros[reg] = {
-                    "registro": reg,
-                    "bloco": reg[0],
-                    "titulo": titulo,
-                    "nivel": int(n.group(1)) if n else None,
-                    "ocorrencia": limpa(o.group(1)) if o else None,
-                    "pagina_guia": pag_ini + 1,
-                    "qtd_campos": len(campos),
-                    "campos": campos,
-                }
-        reg = titulo = pag_ini = None
-        buf_txt, buf_cel = [], []
-
-    for p in paginas:
-        texto = textos[p]
-        ws = palavras[p]
-        marcas = list(RE_REG_TITULO.finditer(texto))
-        if not marcas:
-            if reg:
-                buf_txt.append(texto)
-                buf_cel.extend(celulas_da_pagina(ws))
+    for reg, dados in campos_por_reg.items():
+        if not dados["campos"]:
             continue
-        # localiza a coordenada Y de cada titulo para fatiar a pagina
-        ys = []
-        for m in marcas:
-            alvo = m.group(1)
-            cand = [
-                w["y"]
-                for w in ws
-                if w["t"] == "Registro" or w["t"].startswith(alvo)
-            ]
-            ys.append(min(cand) if cand else 0)
-        if reg and marcas[0].start() > 0:
-            buf_txt.append(texto[: marcas[0].start()])
-            buf_cel.extend(celulas_da_pagina(ws, 0, ys[0]))
-        for i, m in enumerate(marcas):
-            fecha()
-            reg, titulo, pag_ini = m.group(1), limpa(m.group(2)), p
-            fim_txt = marcas[i + 1].start() if i + 1 < len(marcas) else len(texto)
-            y_fim = ys[i + 1] if i + 1 < len(ys) else 1e9
-            buf_txt.append(texto[m.start(): fim_txt])
-            buf_cel.extend(celulas_da_pagina(ws, ys[i], y_fim))
-    fecha()
+        m = meta.get(reg, {})
+        registros[reg] = {
+            "registro": reg,
+            "bloco": reg[0],
+            "titulo": m.get("titulo"),
+            "nivel": m.get("nivel"),
+            "ocorrencia": m.get("ocorrencia"),
+            "pagina_guia": m.get("pagina") or dados["pagina"],
+            "qtd_campos": len(dados["campos"]),
+            "campos": dados["campos"],
+        }
 
     ordem = "0ACDFIMP19"
     registros = dict(
@@ -416,13 +288,13 @@ def main():
         "ordem_blocos": ["0", "A", "C", "D", "F", "I", "M", "P", "1", "9"],
         "total_registros": len(registros),
         "total_campos": sum(r["qtd_campos"] for r in registros.values()),
-        "revisao_manual": revisao_manual(registros),
+        "revisao_manual": pendencias(registros),
         "registros": registros,
     }
     with open("layout_efd_contribuicoes.json", "w", encoding="utf-8") as f:
         json.dump(saida, f, ensure_ascii=False, indent=1)
 
-    print(f"TOTAL: {len(registros)} registros")
+    print(f"TOTAL: {len(registros)} registros, {saida['total_campos']} campos")
     print("por bloco:", dict(Counter(r[0] for r in registros)))
     esperado = {"0000": 14, "0110": 5, "0200": 12, "C100": 29, "C170": 37,
                 "M100": 15, "M200": 13, "M600": 13, "9900": 3, "9999": 2}
@@ -430,12 +302,7 @@ def main():
         r = registros.get(k)
         got = r["qtd_campos"] if r else 0
         print(f"  {k}: {got} campos (esperado ~{exp}) {'OK' if got == exp else '<<'}")
-    buracos = []
-    for k, v in registros.items():
-        nums = [c["num"] for c in v["campos"]]
-        if nums != list(range(1, len(nums) + 1)):
-            buracos.append(k)
-    print("registros com numeracao nao sequencial:", len(buracos), buracos[:20])
+    print("pendentes de revisao:", len(saida["revisao_manual"]))
 
 
 if __name__ == "__main__":
