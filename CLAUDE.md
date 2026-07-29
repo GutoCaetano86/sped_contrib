@@ -10,7 +10,7 @@ Especificação completa em `docs/SPEC.md` (leia-a antes de implementar qualquer
 
 ## Estado atual
 
-`types.ts`, `layout.ts`, `parser.ts` e `serializer.ts` estão implementados. **`totalizers.ts`, `validator.ts`, `to-excel.ts` e `from-excel.ts` ainda são stubs `export {}`** com o contrato previsto em comentário.
+`types.ts`, `layout.ts`, `parser.ts`, `serializer.ts` e `totalizers.ts` estão implementados. **`validator.ts`, `to-excel.ts` e `from-excel.ts` ainda são stubs `export {}`** com o contrato previsto em comentário.
 
 - [x] Dicionário de leiaute (192 registros, 1.662 campos)
 - [x] F1-T1 — scaffolding (Next 15, TS strict, Tailwind 4, shadcn/ui, Vitest)
@@ -18,7 +18,7 @@ Especificação completa em `docs/SPEC.md` (leia-a antes de implementar qualquer
 - [x] F1-T3 — dicionário fechado: 27 registros corrigidos, `revisao_manual` vazia, teste de integridade passando
 - [x] F1-T4 — parser TXT → AST
 - [x] F1-T5 — serializer + round-trip byte a byte
-- [ ] F1-T6 — totalizadores
+- [x] F1-T6 — totalizadores (round-trip byte a byte no arquivo real de 138.100 linhas)
 - [ ] F1-T7 — validador
 - [ ] Fase 2 — conversão Excel
 - [ ] Fase 3 — SaaS (Supabase, auth, rotas, UI)
@@ -132,7 +132,7 @@ Errar qualquer uma destas gera arquivo rejeitado pelo PVA:
 5. **Separador decimal é vírgula**, sem separador de milhar.
 6. Datas em `ddmmaaaa`, períodos em `mmaaaa`, horas em `hhmmss`.
 7. **Zeros à esquerda são significativos** (CNPJ, CPF, códigos). Nunca normalizar números.
-8. Os totalizadores `9900`, `9990`, `9999` e `X990` **sempre são recalculados** ao gerar o TXT — `9900` conta a si mesmo entre os tipos de registro, `9990` conta todas as linhas do bloco 9 incluindo ela mesma e a `9999`.
+8. Os totalizadores `9900`, `9990`, `9999` e `X990` **sempre são recalculados** ao gerar o TXT — `9900` conta a si mesmo entre os tipos de registro, `9990` conta todas as linhas do bloco 9 incluindo ela mesma e a `9999`. A **ordem** em que o `9900` cita os registros não vem da spec: é convenção de quem gerou o arquivo (o real ordena por código dentro do bloco e deixa a entrada do próprio `9900` por último, depois da `9990` e da `9999`). `totalizers.ts` preserva a ordem que o arquivo declarou — sem isso o round-trip byte a byte é impossível em arquivo de terceiro.
 9. A ordem dos blocos é fixa: `0 → A → C → D → F → I → M → P → 1 → 9`.
 10. Registro filho exige registro pai imediatamente acima na sequência.
 
