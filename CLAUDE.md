@@ -10,7 +10,7 @@ Especificação completa em `docs/SPEC.md` (leia-a antes de implementar qualquer
 
 ## Estado atual
 
-`types.ts`, `layout.ts`, `parser.ts`, `serializer.ts` e `totalizers.ts` estão implementados. **`validator.ts`, `to-excel.ts` e `from-excel.ts` ainda são stubs `export {}`** com o contrato previsto em comentário.
+**Fase 1 completa.** `to-excel.ts` e `from-excel.ts` são os únicos stubs `export {}` restantes, com o contrato previsto em comentário.
 
 - [x] Dicionário de leiaute (192 registros, 1.662 campos)
 - [x] F1-T1 — scaffolding (Next 15, TS strict, Tailwind 4, shadcn/ui, Vitest)
@@ -19,7 +19,7 @@ Especificação completa em `docs/SPEC.md` (leia-a antes de implementar qualquer
 - [x] F1-T4 — parser TXT → AST
 - [x] F1-T5 — serializer + round-trip byte a byte
 - [x] F1-T6 — totalizadores (round-trip byte a byte no arquivo real de 138.100 linhas)
-- [ ] F1-T7 — validador
+- [x] F1-T7 — validador (tabela 5.7 completa, CNPJ alfanumérico)
 - [ ] Fase 2 — conversão Excel
 - [ ] Fase 3 — SaaS (Supabase, auth, rotas, UI)
 
@@ -56,6 +56,8 @@ Em máquinas mais lentas, quebre os intervalos de página em blocos de ~70 pági
 **Zero divergências** de contagem de campos contra os dois arquivos reais aprovados pelo PVA.
 
 **O que o teste NÃO prova.** Ele é estrutural: mostra que o dicionário é coerente, não que descreve o leiaute certo. Os arquivos reais exercitam **74 dos 192** registros; os outros **118 nunca foram comparados com o guia** — são saída da extração que passa nos critérios. `dicionario.test.ts` tem um teste que fixa esse número em 118 para ele não passar despercebido; quando chegarem arquivos de outros perfis, deve baixar.
+
+**O melhor auditor do dicionário é o validador, não o teste de integridade.** Rodar `validar()` contra arquivo aprovado pelo PVA achou 6 defeitos que os critérios estruturais não pegam — tamanho e tipo errados, e nome vazado de registro vizinho (`A010`/`D010` estavam com o `IND_MOV` do `A001`/`D001`). Ao receber arquivo real novo, rode o validador contra ele antes de qualquer outra coisa: **erro bloqueante em arquivo que o PVA aceitou é defeito do dicionário, não do arquivo.**
 
 **A hierarquia de fontes, nesta ordem** (aprendida da pior forma no `M210`):
 

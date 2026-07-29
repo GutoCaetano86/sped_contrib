@@ -173,7 +173,7 @@
     },
     {
      "num": 13,
-     "nome": "IND_NAT_PJSCPSCPSCP",
+     "nome": "IND_NAT_PJ",
      "descricao": "Indicador da natureza da pessoa jurídica: 00 – Pessoa jurídica em geral 01 – Sociedade cooperativa 02 – Entidade sujeita ao PIS/Pasep exclusivamente com base na Folha de Salários Indicador da natureza da pessoa jurídica, a partir do ano-calendário de 2014: 00 – Pessoa jurídica em geral (não participante de SCP como sócia ostensiva) 01 – Sociedade cooperativa (não participante de SCP como sócia ost",
      "tipo": "N",
      "tamanho": 2,
@@ -957,7 +957,7 @@
      "nome": "COD_ITEM",
      "descricao": "unidade de medida",
      "tipo": "C",
-     "tamanho": 6,
+     "tamanho": 60,
      "tamanho_fixo": false,
      "decimais": 0,
      "obrigatorio": true
@@ -1044,10 +1044,10 @@
     },
     {
      "num": 11,
-     "nome": "COD_LSTA",
-     "descricao": "do serviço conforme lista do Anexo I da Federal nº 116/03. partir do período de apuração maio de 2.11 do PVA), o código a ser informado poderá ser informado 05 (cinco) caracteres, “XX.XX”, conforme a codificação Complementar nº 116/2003 e na EFD-ICMS/IPI.",
-     "tipo": "N",
-     "tamanho": 4,
+     "nome": "COD_LST",
+     "descricao": "Código do serviço conforme lista do Anexo I da Lei Complementar nº 116/03 (ex.: 1.01, 7.02, 14.01).",
+     "tipo": "C",
+     "tamanho": 5,
      "tamanho_fixo": false,
      "decimais": 0,
      "obrigatorio": false
@@ -1675,11 +1675,11 @@
     },
     {
      "num": 2,
-     "nome": "IND_MOV",
-     "descricao": "de movimento: com dados informados; sem dados informados",
-     "tipo": "C",
-     "tamanho": 1,
-     "tamanho_fixo": false,
+     "nome": "CNPJ",
+     "descricao": "Número de inscrição do estabelecimento no CNPJ.",
+     "tipo": "N",
+     "tamanho": 14,
+     "tamanho_fixo": true,
      "decimais": 0,
      "obrigatorio": true
     }
@@ -7361,11 +7361,11 @@
     },
     {
      "num": 2,
-     "nome": "IND_MOV",
-     "descricao": "de movimento: com dados informados; sem dados informados",
-     "tipo": "C",
-     "tamanho": 1,
-     "tamanho_fixo": false,
+     "nome": "CNPJ",
+     "descricao": "Número de inscrição do estabelecimento no CNPJ.",
+     "tipo": "N",
+     "tamanho": 14,
+     "tamanho_fixo": true,
      "decimais": 0,
      "obrigatorio": true
     }
@@ -9716,9 +9716,9 @@
     {
      "num": 2,
      "nome": "IND_OPER",
-     "descricao": "de inscrição do estabelecimento no",
-     "tipo": "N",
-     "tamanho": 14,
+     "descricao": "Indicador do Tipo da Operação: 0 – Aquisição, custos, despesas ou encargos, ou receitas sujeitas a crédito (CST 50 a 66); 1 – Receita auferida sujeita ao pagamento (CST 01, 02, 03 ou 05); 2 – Receita auferida não sujeita ao pagamento (CST 04, 06, 07, 08, 09, 49).",
+     "tipo": "C",
+     "tamanho": 1,
      "tamanho_fixo": true,
      "decimais": 0,
      "obrigatorio": true
@@ -12441,7 +12441,7 @@
      "nome": "COD_CRED",
      "descricao": "de movimento: Bloco com dados informados; Bloco sem dados informados",
      "tipo": "C",
-     "tamanho": 1,
+     "tamanho": 3,
      "tamanho_fixo": true,
      "decimais": 0,
      "obrigatorio": true

@@ -480,6 +480,69 @@ def main():
     corrige("C170", 28, nome="QUANT_BC_PIS")
     corrige("C170", 34, nome="QUANT_BC_COFINS")
 
+    # =======================================================================
+    # PARTE 4 — defeitos que o VALIDADOR encontrou (F1-T7).
+    #
+    # Rodar lib/sped/validator.ts contra a fixture real aprovada pelo PVA
+    # acusou 6 erros bloqueantes. Nenhum era bug do validador: eram tamanhos
+    # e nomes errados no dicionario, que os criterios de integridade nao
+    # alcancam porque sao estruturais. Cada um foi conferido na pagina do
+    # guia. Este e o padrao de evidencia mais forte do projeto — arquivo
+    # aceito pelo PVA E o guia concordando.
+    # =======================================================================
+
+    # 0200, pagina 83: COD_ITEM e C 060, nao C 006. O arquivo real tem codigo
+    # de item com 12 caracteres, que o dicionario recusava.
+    corrige("0200", 2, tamanho=60)
+
+    # 0200 campo 11: o nome estava COD_LSTA, com um "A" grudado do texto
+    # vizinho; o guia diz COD_LST.
+    #
+    # E o TIPO diverge do guia de proposito. O guia declara N 004, mas os
+    # codigos da lista de servicos da LC 116/03 sao escritos com ponto —
+    # "1.01", "7.02", "14.01" — e o arquivo aprovado pelo PVA os traz assim,
+    # com ate 5 caracteres. Mantido N, o validador acusaria 58 erros
+    # bloqueantes num arquivo que a Receita aceitou. Mesma situacao do
+    # M210: quando guia e arquivo real divergem, vale o arquivo real.
+    corrige(
+        "0200", 11,
+        nome="COD_LST",
+        descricao="Código do serviço conforme lista do Anexo I da Lei Complementar "
+        "nº 116/03 (ex.: 1.01, 7.02, 14.01).",
+        tipo="C", tamanho=5, tamanho_fixo=False,
+    )
+
+    # A010 e D010, paginas 95 e 193: o campo 02 e CNPJ, nao IND_MOV. O
+    # IND_MOV vazou do registro de abertura de bloco (A001 e D001), que esta
+    # logo acima na mesma pagina. Confirmado tambem pelas duas transcricoes
+    # independentes do autor.
+    for reg in ("A010", "D010"):
+        corrige(
+            reg, 2,
+            nome="CNPJ",
+            descricao="Número de inscrição do estabelecimento no CNPJ.",
+            tipo="N", tamanho=14, tamanho_fixo=True, decimais=0, obrigatorio=True,
+        )
+
+    # F100, pagina 232: IND_OPER e C 001*, nao N 014*.
+    corrige(
+        "F100", 2,
+        descricao="Indicador do Tipo da Operação: 0 – Aquisição, custos, despesas ou "
+        "encargos, ou receitas sujeitas a crédito (CST 50 a 66); 1 – Receita auferida "
+        "sujeita ao pagamento (CST 01, 02, 03 ou 05); 2 – Receita auferida não sujeita "
+        "ao pagamento (CST 04, 06, 07, 08, 09, 49).",
+        tipo="C", tamanho=1, tamanho_fixo=True,
+    )
+
+    # M100, pagina 296: COD_CRED e C 003*, nao C 001*.
+    corrige("M100", 2, tamanho=3)
+
+    # 0000, campo 13: "IND_NAT_PJSCPSCPSCP" tem texto vizinho da tabela
+    # grudado no nome. Achado em F1-T2 e confirmado pelas duas transcricoes
+    # do autor. Passa nos criterios de integridade porque e unico e tem forma
+    # de identificador — por isso escapou ate agora.
+    corrige("0000", 13, nome="IND_NAT_PJ")
+
     # --- revisao_manual -----------------------------------------------------
     # As 21 pendencias eram de EXTRACAO: campo perdido, nome estilhacado,
     # tipo nao identificado. Todas fechadas, entao o array esvazia.
