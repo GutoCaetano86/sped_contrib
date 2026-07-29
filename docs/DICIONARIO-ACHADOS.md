@@ -61,6 +61,28 @@ O guia v1.35 dá 13 campos ao `M210`, terminando em `VL_CONT_PER`; o
 dicionário tem 16. A correção é **descartar as duplicatas**. Vale igual para
 o `M610`. Mesmo raciocínio deve ser checado em `0145` e `C170`.
 
+## 3b. O Guia v1.35 está DESATUALIZADO em pelo menos dois registros
+
+Descoberto ao fechar F1-T3, e é o achado que mais muda a hierarquia de
+fontes.
+
+O `M210` e o `M610` têm **13 campos** nas tabelas do guia (páginas 310-311 e
+344-345), terminando em `VL_CONT_PER`. Mas o arquivo real de **dezembro de
+2021, aprovado pelo PVA**, traz **16** — os três a mais são
+`VL_AJUS_ACRES_BC_PIS`, `VL_AJUS_REDUC_BC_PIS` e `VL_BC_CONT_AJUS`, ajustes
+da base de cálculo. O leiaute mudou depois de o guia v1.35 ser publicado, em
+junho de 2021.
+
+**Hierarquia de autoridade, nesta ordem:**
+
+1. arquivo real aprovado pelo PVA — é o que decide se o arquivo passa;
+2. transcrições do autor (JS e XLSM) — batem com o real onde há sobreposição;
+3. Guia Prático v1.35 — completo e preciso na maioria, mas pode estar velho.
+
+Ficou registrado no `aplica_correcoes.py`: manter 13 campos no `M210` faria
+o parser avisar em toda linha e a Fase 2 gerar 13 colunas para 16 valores,
+perdendo dado.
+
 ## 4. Fontes de contraprova — úteis, mas de outra versão
 
 Dois projetos anteriores do autor transcrevem o leiaute de forma

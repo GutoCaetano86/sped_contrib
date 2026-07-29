@@ -39,187 +39,8 @@
   "9"
  ],
  "total_registros": 192,
- "total_campos": 1640,
- "revisao_manual": [
-  {
-   "registro": "0111",
-   "pagina_guia": 74,
-   "campos_extraidos": 4,
-   "motivos": [
-    "campos ausentes: [3, 4]"
-   ]
-  },
-  {
-   "registro": "0500",
-   "pagina_guia": 89,
-   "campos_extraidos": 8,
-   "motivos": [
-    "campos ausentes: [5]"
-   ]
-  },
-  {
-   "registro": "C396",
-   "pagina_guia": 152,
-   "campos_extraidos": 13,
-   "motivos": [
-    "campos ausentes: [5]"
-   ]
-  },
-  {
-   "registro": "C810",
-   "pagina_guia": 179,
-   "campos_extraidos": 12,
-   "motivos": [
-    "campos ausentes: [10]"
-   ]
-  },
-  {
-   "registro": "C820",
-   "pagina_guia": 182,
-   "campos_extraidos": 10,
-   "motivos": [
-    "campos ausentes: [5, 10]"
-   ]
-  },
-  {
-   "registro": "C880",
-   "pagina_guia": 188,
-   "campos_extraidos": 12,
-   "motivos": [
-    "campos ausentes: [6]"
-   ]
-  },
-  {
-   "registro": "D100",
-   "pagina_guia": 194,
-   "campos_extraidos": 22,
-   "motivos": [
-    "campos ausentes: [13]"
-   ]
-  },
-  {
-   "registro": "D201",
-   "pagina_guia": 204,
-   "campos_extraidos": 5,
-   "motivos": [
-    "campos ausentes: [2]",
-    "campo 01 deveria ser REG"
-   ]
-  },
-  {
-   "registro": "F500",
-   "pagina_guia": 258,
-   "campos_extraidos": 13,
-   "motivos": [
-    "campos ausentes: [3, 13]",
-    "campo 01 deveria ser REG",
-    "tipo nao identificado nos campos [9]"
-   ]
-  },
-  {
-   "registro": "F510",
-   "pagina_guia": 262,
-   "campos_extraidos": 15,
-   "motivos": [
-    "campos ausentes: [11]",
-    "campo 01 deveria ser REG"
-   ]
-  },
-  {
-   "registro": "F550",
-   "pagina_guia": 268,
-   "campos_extraidos": 13,
-   "motivos": [
-    "campos ausentes: [2, 9]",
-    "campo 01 deveria ser REG",
-    "tipo nao identificado nos campos [3, 13]"
-   ]
-  },
-  {
-   "registro": "F560",
-   "pagina_guia": 273,
-   "campos_extraidos": 14,
-   "motivos": [
-    "campos ausentes: [2, 11]",
-    "campo 01 deveria ser REG"
-   ]
-  },
-  {
-   "registro": "M110",
-   "pagina_guia": 303,
-   "campos_extraidos": 6,
-   "motivos": [
-    "campos ausentes: [4]"
-   ]
-  },
-  {
-   "registro": "M220",
-   "pagina_guia": 321,
-   "campos_extraidos": 6,
-   "motivos": [
-    "campos ausentes: [4]"
-   ]
-  },
-  {
-   "registro": "M500",
-   "pagina_guia": 329,
-   "campos_extraidos": 14,
-   "motivos": [
-    "campos ausentes: [3]"
-   ]
-  },
-  {
-   "registro": "P100",
-   "pagina_guia": 367,
-   "campos_extraidos": 12,
-   "motivos": [
-    "tipo nao identificado nos campos [10, 12]"
-   ]
-  },
-  {
-   "registro": "1100",
-   "pagina_guia": 384,
-   "campos_extraidos": 8,
-   "motivos": [
-    "campos ausentes: [5]"
-   ]
-  },
-  {
-   "registro": "1300",
-   "pagina_guia": 394,
-   "campos_extraidos": 7,
-   "motivos": [
-    "campos ausentes: [7]",
-    "tipo nao identificado nos campos [8]"
-   ]
-  },
-  {
-   "registro": "1500",
-   "pagina_guia": 396,
-   "campos_extraidos": 18,
-   "motivos": [
-    "tipo nao identificado nos campos [16, 18]"
-   ]
-  },
-  {
-   "registro": "1620",
-   "pagina_guia": 405,
-   "campos_extraidos": 4,
-   "motivos": [
-    "campos ausentes: [1]",
-    "campo 01 deveria ser REG"
-   ]
-  },
-  {
-   "registro": "1700",
-   "pagina_guia": 406,
-   "campos_extraidos": 7,
-   "motivos": [
-    "campos ausentes: [7]",
-    "tipo nao identificado nos campos [8]"
-   ]
-  }
- ],
+ "total_campos": 1662,
+ "revisao_manual": [],
  "registros": {
   "0000": {
    "registro": "0000",
@@ -865,13 +686,13 @@
    "titulo": "Regime de Apuração da Contribuição Previdenciária Sobre a Receita Bruta",
    "nivel": 3,
    "ocorrencia": "1:1",
-   "pagina_guia": 79,
+   "pagina_guia": 80,
    "qtd_campos": 6,
    "campos": [
     {
      "num": 1,
      "nome": "REG",
-     "descricao": "contendo “0145”.",
+     "descricao": "Texto fixo contendo \"0145\".",
      "tipo": "C",
      "tamanho": 4,
      "tamanho_fixo": true,
@@ -881,7 +702,7 @@
     {
      "num": 2,
      "nome": "COD_INC_TRIB",
-     "descricao": "indicador da incidência tributária no Contribuição Previdenciária apurada no com base na Receita Bruta; Contribuição Previdenciária apurada no Receita Bruta e com base nas Remunerações forma dos nos incisos I e III do art. 22 1991.",
+     "descricao": "Código indicador da incidência tributária no período: 1 – Contribuição Previdenciária apurada no período, exclusivamente com base na Receita Bruta; 2 – Contribuição Previdenciária apurada no período, com base na Receita Bruta e com base nas Remunerações pagas, na forma dos incisos I e III do art. 22 da Lei nº 8.212, de 1991.",
      "tipo": "N",
      "tamanho": 1,
      "tamanho_fixo": true,
@@ -890,8 +711,8 @@
     },
     {
      "num": 3,
-     "nome": "VL_REC",
-     "descricao": "Receita Bruta Total da Pessoa Jurídica",
+     "nome": "VL_REC_TOT",
+     "descricao": "Valor da Receita Bruta Total da Pessoa Jurídica no Período",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -900,8 +721,8 @@
     },
     {
      "num": 4,
-     "nome": "VL_REC",
-     "descricao": "Receita Bruta da(s) Atividade(s) Sujeita(s) Previdenciária sobre a Receita Bruta",
+     "nome": "VL_REC_ATIV",
+     "descricao": "Valor da Receita Bruta da(s) Atividade(s) Sujeita(s) à Contribuição Previdenciária sobre a Receita Bruta",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -910,8 +731,8 @@
     },
     {
      "num": 5,
-     "nome": "VL_RECS_ATIV",
-     "descricao": "Receita Bruta da(s) Atividade(s) não Previdenciária sobre a Receita Bruta",
+     "nome": "VL_REC_DEMAIS_ATIV",
+     "descricao": "Valor da Receita Bruta da(s) Atividade(s) não Sujeita(s) à Contribuição Previdenciária sobre a Receita Bruta",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -921,7 +742,7 @@
     {
      "num": 6,
      "nome": "INFO_COMPL",
-     "descricao": "complementar",
+     "descricao": "Informação complementar",
      "tipo": "C",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -3297,7 +3118,7 @@
     },
     {
      "num": 28,
-     "nome": "QUANT_BC",
+     "nome": "QUANT_BC_PIS",
      "descricao": "– Base de cálculo PIS/PASEP",
      "tipo": "N",
      "tamanho": 0,
@@ -3357,7 +3178,7 @@
     },
     {
      "num": 34,
-     "nome": "QUANT_BC",
+     "nome": "QUANT_BC_COFINS",
      "descricao": "– Base de cálculo COFINS",
      "tipo": "N",
      "tamanho": 0,
@@ -4838,7 +4659,7 @@
    "nivel": 4,
    "ocorrencia": "1:N",
    "pagina_guia": 152,
-   "qtd_campos": 13,
+   "qtd_campos": 14,
    "campos": [
     {
      "num": 1,
@@ -4853,7 +4674,7 @@
     {
      "num": 2,
      "nome": "COD_ITEM",
-     "descricao": "do item (campo 02 do Registro 0200)",
+     "descricao": "Código do item (campo 02 do Registro 0200)",
      "tipo": "C",
      "tamanho": 60,
      "tamanho_fixo": false,
@@ -4863,7 +4684,7 @@
     {
      "num": 3,
      "nome": "VL_ITEM",
-     "descricao": "total do item (mercadorias ou serviços)",
+     "descricao": "Valor total do item (mercadorias ou serviços)",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -4872,8 +4693,8 @@
     },
     {
      "num": 4,
-     "nome": "VL_DESCNAT_BC_CRED",
-     "descricao": "desconto comercial do item da Base de Cálculo do Crédito, conforme",
+     "nome": "VL_DESC",
+     "descricao": "Valor do desconto comercial do item",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -4881,9 +4702,19 @@
      "obrigatorio": false
     },
     {
+     "num": 5,
+     "nome": "NAT_BC_CRED",
+     "descricao": "Código da Base de Cálculo do Crédito, conforme a Tabela indicada no item 4.3.7.",
+     "tipo": "C",
+     "tamanho": 2,
+     "tamanho_fixo": true,
+     "decimais": 0,
+     "obrigatorio": true
+    },
+    {
      "num": 6,
      "nome": "CST_PIS",
-     "descricao": "da Situação Tributária referente ao",
+     "descricao": "Código da Situação Tributária referente ao PIS/PASEP",
      "tipo": "N",
      "tamanho": 2,
      "tamanho_fixo": true,
@@ -4893,7 +4724,7 @@
     {
      "num": 7,
      "nome": "VL_BC_PIS",
-     "descricao": "base de cálculo do crédito de PIS/PASEP",
+     "descricao": "Valor da base de cálculo do crédito de PIS/PASEP",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -4903,7 +4734,7 @@
     {
      "num": 8,
      "nome": "ALIQ_PIS",
-     "descricao": "do PIS/PASEP (em percentual)",
+     "descricao": "Alíquota do PIS/PASEP (em percentual)",
      "tipo": "N",
      "tamanho": 8,
      "tamanho_fixo": false,
@@ -4913,7 +4744,7 @@
     {
      "num": 9,
      "nome": "VL_PIS",
-     "descricao": "crédito de PIS/PASEP",
+     "descricao": "Valor do crédito de PIS/PASEP",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -4923,7 +4754,7 @@
     {
      "num": 10,
      "nome": "CST_COFINS",
-     "descricao": "da Situação Tributária referente a COFINS",
+     "descricao": "Código da Situação Tributária referente a COFINS",
      "tipo": "N",
      "tamanho": 2,
      "tamanho_fixo": true,
@@ -4933,7 +4764,7 @@
     {
      "num": 11,
      "nome": "VL_BC_COFINS",
-     "descricao": "base de cálculo do crédito de COFINS",
+     "descricao": "Valor da base de cálculo do crédito de COFINS",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -4943,7 +4774,7 @@
     {
      "num": 12,
      "nome": "ALIQ_COFINS",
-     "descricao": "da COFINS (em percentual)",
+     "descricao": "Alíquota da COFINS (em percentual)",
      "tipo": "N",
      "tamanho": 8,
      "tamanho_fixo": false,
@@ -4953,7 +4784,7 @@
     {
      "num": 13,
      "nome": "VL_COFINS",
-     "descricao": "crédito de COFINS",
+     "descricao": "Valor do crédito de COFINS",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -4963,7 +4794,7 @@
     {
      "num": 14,
      "nome": "COD_CTA",
-     "descricao": "da conta analítica contábil debitada/creditada",
+     "descricao": "Código da conta analítica contábil debitada/creditada",
      "tipo": "C",
      "tamanho": 255,
      "tamanho_fixo": false,
@@ -6716,13 +6547,13 @@
    "titulo": "Detalhamento do Cupom Fiscal Eletrônico (Código 59) – PIS/Pasep e Cofins",
    "nivel": 4,
    "ocorrencia": "1:N",
-   "pagina_guia": 179,
-   "qtd_campos": 12,
+   "pagina_guia": 180,
+   "qtd_campos": 13,
    "campos": [
     {
      "num": 1,
      "nome": "REG",
-     "descricao": "fixo contendo \"C810\"",
+     "descricao": "Texto fixo contendo \"C810\"",
      "tipo": "C",
      "tamanho": 4,
      "tamanho_fixo": true,
@@ -6732,7 +6563,7 @@
     {
      "num": 2,
      "nome": "CFOP",
-     "descricao": "fiscal de operação e prestação",
+     "descricao": "Código fiscal de operação e prestação",
      "tipo": "N",
      "tamanho": 4,
      "tamanho_fixo": false,
@@ -6742,7 +6573,7 @@
     {
      "num": 3,
      "nome": "VL_ITEM",
-     "descricao": "total dos itens",
+     "descricao": "Valor total dos itens",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -6752,7 +6583,7 @@
     {
      "num": 4,
      "nome": "COD_ITEM",
-     "descricao": "do item (campo 02 do Registro 0200)",
+     "descricao": "Código do item (campo 02 do Registro 0200)",
      "tipo": "C",
      "tamanho": 60,
      "tamanho_fixo": false,
@@ -6762,7 +6593,7 @@
     {
      "num": 5,
      "nome": "CST_PIS",
-     "descricao": "da Situação Tributária referente ao",
+     "descricao": "Código da Situação Tributária referente ao PIS/PASEP",
      "tipo": "N",
      "tamanho": 2,
      "tamanho_fixo": true,
@@ -6772,7 +6603,7 @@
     {
      "num": 6,
      "nome": "VL_BC_PIS",
-     "descricao": "base de cálculo do PIS/PASEP",
+     "descricao": "Valor da base de cálculo do PIS/PASEP",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -6782,7 +6613,7 @@
     {
      "num": 7,
      "nome": "ALIQ_PIS",
-     "descricao": "do PIS/PASEP (em percentual)",
+     "descricao": "Alíquota do PIS/PASEP (em percentual)",
      "tipo": "N",
      "tamanho": 8,
      "tamanho_fixo": false,
@@ -6792,7 +6623,7 @@
     {
      "num": 8,
      "nome": "VL_PIS",
-     "descricao": "PIS/PASEP",
+     "descricao": "Valor do PIS/PASEP",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -6801,8 +6632,8 @@
     },
     {
      "num": 9,
-     "nome": "CST_COFINSVL_BC_COFIN",
-     "descricao": "da Situação Tributária referente a base de cálculo da COFINS",
+     "nome": "CST_COFINS",
+     "descricao": "Código da Situação Tributária referente a COFINS",
      "tipo": "N",
      "tamanho": 2,
      "tamanho_fixo": true,
@@ -6810,9 +6641,19 @@
      "obrigatorio": true
     },
     {
+     "num": 10,
+     "nome": "VL_BC_COFINS",
+     "descricao": "Valor da base de cálculo da COFINS",
+     "tipo": "N",
+     "tamanho": 0,
+     "tamanho_fixo": false,
+     "decimais": 2,
+     "obrigatorio": false
+    },
+    {
      "num": 11,
      "nome": "ALIQ_COFINS",
-     "descricao": "da COFINS (em percentual)",
+     "descricao": "Alíquota da COFINS (em percentual)",
      "tipo": "N",
      "tamanho": 8,
      "tamanho_fixo": false,
@@ -6822,7 +6663,7 @@
     {
      "num": 12,
      "nome": "VL_COFINS",
-     "descricao": "COFINS",
+     "descricao": "Valor da COFINS",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -6832,7 +6673,7 @@
     {
      "num": 13,
      "nome": "COD_CTA",
-     "descricao": "da conta analítica contábil debitada/creditada",
+     "descricao": "Código da conta analítica contábil debitada/creditada",
      "tipo": "C",
      "tamanho": 255,
      "tamanho_fixo": false,
@@ -6848,12 +6689,12 @@
    "nivel": 4,
    "ocorrencia": "1:N",
    "pagina_guia": 182,
-   "qtd_campos": 10,
+   "qtd_campos": 13,
    "campos": [
     {
      "num": 1,
      "nome": "REG",
-     "descricao": "fixo contendo \"C820\"",
+     "descricao": "Texto fixo contendo \"C820\"",
      "tipo": "C",
      "tamanho": 4,
      "tamanho_fixo": true,
@@ -6863,7 +6704,7 @@
     {
      "num": 2,
      "nome": "CFOP",
-     "descricao": "fiscal de operação e prestação",
+     "descricao": "Código fiscal de operação e prestação",
      "tipo": "N",
      "tamanho": 4,
      "tamanho_fixo": true,
@@ -6873,7 +6714,7 @@
     {
      "num": 3,
      "nome": "VL_ITEM",
-     "descricao": "total dos itens",
+     "descricao": "Valor total dos itens",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -6882,8 +6723,8 @@
     },
     {
      "num": 4,
-     "nome": "COD_ITEMCST_PIS",
-     "descricao": "do item (campo 02 do Registro da Situação Tributária referente",
+     "nome": "COD_ITEM",
+     "descricao": "Código do item (campo 02 do Registro 0200)",
      "tipo": "C",
      "tamanho": 60,
      "tamanho_fixo": false,
@@ -6891,9 +6732,19 @@
      "obrigatorio": false
     },
     {
+     "num": 5,
+     "nome": "CST_PIS",
+     "descricao": "Código da Situação Tributária referente ao PIS/PASEP",
+     "tipo": "N",
+     "tamanho": 2,
+     "tamanho_fixo": true,
+     "decimais": 0,
+     "obrigatorio": true
+    },
+    {
      "num": 6,
      "nome": "QUANT_BC_PIS",
-     "descricao": "de cálculo em quantidade - PIS/PASEP",
+     "descricao": "Base de cálculo em quantidade - PIS/PASEP",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -6903,7 +6754,7 @@
     {
      "num": 7,
      "nome": "ALIQ_PIS_QUANT",
-     "descricao": "do PIS/PASEP (em reais)",
+     "descricao": "Alíquota do PIS/PASEP (em reais)",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -6913,7 +6764,7 @@
     {
      "num": 8,
      "nome": "VL_PIS",
-     "descricao": "do PIS/PASEP",
+     "descricao": "Valor do PIS/PASEP",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -6922,8 +6773,8 @@
     },
     {
      "num": 9,
-     "nome": "CST_COFINSQUANT_BC_COFI",
-     "descricao": "da Situação Tributária referente a de cálculo em quantidade – COFINS",
+     "nome": "CST_COFINS",
+     "descricao": "Código da Situação Tributária referente a COFINS",
      "tipo": "N",
      "tamanho": 2,
      "tamanho_fixo": true,
@@ -6931,9 +6782,19 @@
      "obrigatorio": true
     },
     {
+     "num": 10,
+     "nome": "QUANT_BC_COFINS",
+     "descricao": "Base de cálculo em quantidade – COFINS",
+     "tipo": "N",
+     "tamanho": 0,
+     "tamanho_fixo": false,
+     "decimais": 3,
+     "obrigatorio": false
+    },
+    {
      "num": 11,
      "nome": "ALIQ_COFINS_QUANT",
-     "descricao": "da COFINS (em reais)",
+     "descricao": "Alíquota da COFINS (em reais)",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -6942,12 +6803,22 @@
     },
     {
      "num": 12,
-     "nome": "VL_COFINSCOD_CTA",
-     "descricao": "da COFINS da conta analítica",
+     "nome": "VL_COFINS",
+     "descricao": "Valor da COFINS",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
      "decimais": 2,
+     "obrigatorio": false
+    },
+    {
+     "num": 13,
+     "nome": "COD_CTA",
+     "descricao": "Código da conta analítica contábil debitada/creditada",
+     "tipo": "C",
+     "tamanho": 255,
+     "tamanho_fixo": false,
+     "decimais": 0,
      "obrigatorio": false
     }
    ]
@@ -7222,7 +7093,7 @@
    "nivel": 4,
    "ocorrencia": "1:N",
    "pagina_guia": 188,
-   "qtd_campos": 12,
+   "qtd_campos": 14,
    "campos": [
     {
      "num": 1,
@@ -7266,13 +7137,23 @@
     },
     {
      "num": 5,
-     "nome": "VL_DESCCST_PIS",
-     "descricao": "Valor da exclusão/desconto comercial dos itens CST_PIS Código da Situação Tributária referente ao N 002* - S 06 PIS/PASEP",
+     "nome": "VL_DESC",
+     "descricao": "Valor da exclusão/desconto comercial dos itens",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
      "decimais": 2,
      "obrigatorio": false
+    },
+    {
+     "num": 6,
+     "nome": "CST_PIS",
+     "descricao": "Código da Situação Tributária referente ao PIS/PASEP",
+     "tipo": "N",
+     "tamanho": 2,
+     "tamanho_fixo": true,
+     "decimais": 0,
+     "obrigatorio": true
     },
     {
      "num": 7,
@@ -7336,12 +7217,22 @@
     },
     {
      "num": 13,
-     "nome": "VL_COFINSCOD_CTA",
-     "descricao": "Valor da COFINS Código da conta analítica contábil C 255 - N 14 debitada/creditada Observações: 1. Este registro tem por objetivo representar a escrituração consolidada das vendas diárias por equipamento SAT-DF- E, segmentado por CST (CST PIS/Pasep e CST Cofins) ou por item, correspondente a receitas tributadas por quantidade de produtos vendidos; 2. Na escrituração de suas operações diárias de ca",
+     "nome": "VL_COFINS",
+     "descricao": "Valor da COFINS",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
      "decimais": 2,
+     "obrigatorio": false
+    },
+    {
+     "num": 14,
+     "nome": "COD_CTA",
+     "descricao": "Código da conta analítica contábil debitada/creditada",
+     "tipo": "C",
+     "tamanho": 255,
+     "tamanho_fixo": false,
+     "decimais": 0,
      "obrigatorio": false
     }
    ]
@@ -8092,12 +7983,12 @@
    "nivel": 4,
    "ocorrencia": "1:N",
    "pagina_guia": 204,
-   "qtd_campos": 5,
+   "qtd_campos": 7,
    "campos": [
     {
      "num": 1,
-     "nome": "CST_PIS",
-     "descricao": "fixo contendo \"D201\" da Situação Tributária",
+     "nome": "REG",
+     "descricao": "Texto fixo contendo \"D201\"",
      "tipo": "C",
      "tamanho": 4,
      "tamanho_fixo": true,
@@ -8105,9 +7996,19 @@
      "obrigatorio": true
     },
     {
+     "num": 2,
+     "nome": "CST_PIS",
+     "descricao": "Código da Situação Tributária referente ao PIS/PASEP",
+     "tipo": "N",
+     "tamanho": 2,
+     "tamanho_fixo": true,
+     "decimais": 0,
+     "obrigatorio": true
+    },
+    {
      "num": 3,
      "nome": "VL_ITEM",
-     "descricao": "total dos itens",
+     "descricao": "Valor total dos itens",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -8117,7 +8018,7 @@
     {
      "num": 4,
      "nome": "VL_BC_PIS",
-     "descricao": "da base de cálculo do PIS/PASEP",
+     "descricao": "Valor da base de cálculo do PIS/PASEP",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -8127,7 +8028,7 @@
     {
      "num": 5,
      "nome": "ALIQ_PIS",
-     "descricao": "do PIS/PASEP (em percentual)",
+     "descricao": "Alíquota do PIS/PASEP (em percentual)",
      "tipo": "N",
      "tamanho": 8,
      "tamanho_fixo": false,
@@ -8136,12 +8037,22 @@
     },
     {
      "num": 6,
-     "nome": "VL_PISCOD_CTA",
-     "descricao": "do PIS/PASEP da conta analítica",
+     "nome": "VL_PIS",
+     "descricao": "Valor do PIS/PASEP",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
      "decimais": 2,
+     "obrigatorio": false
+    },
+    {
+     "num": 7,
+     "nome": "COD_CTA",
+     "descricao": "Código da conta analítica contábil debitada/creditada",
+     "tipo": "C",
+     "tamanho": 255,
+     "tamanho_fixo": false,
+     "decimais": 0,
      "obrigatorio": false
     }
    ]
@@ -11169,12 +11080,12 @@
    "nivel": 3,
    "ocorrencia": "1:N",
    "pagina_guia": 258,
-   "qtd_campos": 13,
+   "qtd_campos": 16,
    "campos": [
     {
      "num": 1,
-     "nome": "REGVL_REC_CAIXA",
-     "descricao": "Texto fixo contendo \"F500\" VL_REC_CAIXA Valor total da receita recebida, referente à N - 02 S 02 combinação de CST e Alíquota. CST_PIS Código da Situação Tributária referente ao N 002* - S 03 PIS/PASEP",
+     "nome": "REG",
+     "descricao": "Texto fixo contendo \"F500\"",
      "tipo": "C",
      "tamanho": 4,
      "tamanho_fixo": true,
@@ -11183,8 +11094,18 @@
     },
     {
      "num": 2,
+     "nome": "VL_REC_CAIXA",
+     "descricao": "Valor total da receita recebida, referente à combinação de CST e Alíquota.",
+     "tipo": "N",
+     "tamanho": 0,
+     "tamanho_fixo": false,
+     "decimais": 2,
+     "obrigatorio": true
+    },
+    {
+     "num": 3,
      "nome": "CST_PIS",
-     "descricao": "combinação de CST e Alíquota. Código da Situação Tributária",
+     "descricao": "Código da Situação Tributária referente ao PIS/PASEP",
      "tipo": "N",
      "tamanho": 2,
      "tamanho_fixo": true,
@@ -11233,8 +11154,8 @@
     },
     {
      "num": 8,
-     "nome": "CST_COFINSVL_DESC_COFIN",
-     "descricao": "Código da Situação Tributária referente a COFINS VL_DESC_COFIN Valor do desconto / exclusão da base de cálculo N - 02 N 09 S",
+     "nome": "CST_COFINS",
+     "descricao": "Código da Situação Tributária referente a COFINS",
      "tipo": "N",
      "tamanho": 2,
      "tamanho_fixo": true,
@@ -11243,12 +11164,12 @@
     },
     {
      "num": 9,
-     "nome": "S",
-     "descricao": "",
-     "tipo": "",
+     "nome": "VL_DESC_COFINS",
+     "descricao": "Valor do desconto / exclusão da base de cálculo",
+     "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
-     "decimais": 0,
+     "decimais": 2,
      "obrigatorio": false
     },
     {
@@ -11273,12 +11194,22 @@
     },
     {
      "num": 12,
-     "nome": "VL_COFINSCOD_MOD",
-     "descricao": "Valor da COFINS Código do modelo do documento fiscal conforme a C 002* - N 13 Tabela 4.1.1",
+     "nome": "VL_COFINS",
+     "descricao": "Valor da COFINS",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
      "decimais": 2,
+     "obrigatorio": false
+    },
+    {
+     "num": 13,
+     "nome": "COD_MOD",
+     "descricao": "Código do modelo do documento fiscal conforme a Tabela 4.1.1",
+     "tipo": "C",
+     "tamanho": 2,
+     "tamanho_fixo": true,
+     "decimais": 0,
      "obrigatorio": false
     },
     {
@@ -11294,9 +11225,19 @@
     {
      "num": 15,
      "nome": "COD_CTA",
-     "descricao": "Código da conta analítica contábil debitada/creditada INFO_COMPL Informação complementar C - - N 16 Observações: 1. Deve ser escriturado um registro para cada CST representativo das receitas recebidas no período, sujeitas ou não ao pagamento da contribuição social. 2. No caso de incidir mais de uma alíquota em relação a um mesmo CST, como no caso de produtos monofásicos, deve a pessoa jurídica esc",
+     "descricao": "Código da conta analítica contábil debitada/creditada",
      "tipo": "C",
      "tamanho": 255,
+     "tamanho_fixo": false,
+     "decimais": 0,
+     "obrigatorio": false
+    },
+    {
+     "num": 16,
+     "nome": "INFO_COMPL",
+     "descricao": "Informação complementar",
+     "tipo": "C",
+     "tamanho": 0,
      "tamanho_fixo": false,
      "decimais": 0,
      "obrigatorio": false
@@ -11351,12 +11292,12 @@
    "nivel": 3,
    "ocorrencia": "1:N",
    "pagina_guia": 262,
-   "qtd_campos": 15,
+   "qtd_campos": 16,
    "campos": [
     {
      "num": 1,
-     "nome": "REGVL_REC_CAI",
-     "descricao": "fixo contendo \"F510\" total da receita recebida,",
+     "nome": "REG",
+     "descricao": "Texto fixo contendo \"F510\"",
      "tipo": "C",
      "tamanho": 4,
      "tamanho_fixo": true,
@@ -11365,8 +11306,8 @@
     },
     {
      "num": 2,
-     "nome": "XA",
-     "descricao": "de CST e Alíquota. da Situação Tributária",
+     "nome": "VL_REC_CAIXA",
+     "descricao": "Valor total da receita recebida, referente à combinação de CST e Alíquota.",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -11376,7 +11317,7 @@
     {
      "num": 3,
      "nome": "CST_PIS",
-     "descricao": "",
+     "descricao": "Código da Situação Tributária referente ao PIS/PASEP",
      "tipo": "N",
      "tamanho": 2,
      "tamanho_fixo": true,
@@ -11385,8 +11326,8 @@
     },
     {
      "num": 4,
-     "nome": "VL_DESC_PISQUANT_BC_P",
-     "descricao": "do desconto / exclusão",
+     "nome": "VL_DESC_PIS",
+     "descricao": "Valor do desconto / exclusão",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -11395,8 +11336,8 @@
     },
     {
      "num": 5,
-     "nome": "ISALIQ_PIS_QU",
-     "descricao": "cálculo em quantidade - PIS/PASEP",
+     "nome": "QUANT_BC_PIS",
+     "descricao": "Base de cálculo em quantidade - PIS/PASEP",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -11405,8 +11346,8 @@
     },
     {
      "num": 6,
-     "nome": "ANT",
-     "descricao": "do PIS/PASEP (em reais)",
+     "nome": "ALIQ_PIS_QUANT",
+     "descricao": "Alíquota do PIS/PASEP (em reais)",
      "tipo": "N",
      "tamanho": 8,
      "tamanho_fixo": false,
@@ -11416,7 +11357,7 @@
     {
      "num": 7,
      "nome": "VL_PIS",
-     "descricao": "do PIS/PASEP",
+     "descricao": "Valor do PIS/PASEP",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -11425,8 +11366,8 @@
     },
     {
      "num": 8,
-     "nome": "CST_COFINSVL_DESC_CO",
-     "descricao": "da Situação Tributária referente a",
+     "nome": "CST_COFINS",
+     "descricao": "Código da Situação Tributária referente a COFINS",
      "tipo": "N",
      "tamanho": 2,
      "tamanho_fixo": true,
@@ -11435,8 +11376,8 @@
     },
     {
      "num": 9,
-     "nome": "FINSQUANT_BC_C",
-     "descricao": "do desconto / exclusão",
+     "nome": "VL_DESC_COFINS",
+     "descricao": "Valor do desconto / exclusão",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -11445,8 +11386,8 @@
     },
     {
      "num": 10,
-     "nome": "OFINSALIQ_COFINS",
-     "descricao": "cálculo em quantidade - COFINS",
+     "nome": "QUANT_BC_COFINS",
+     "descricao": "Base de cálculo em quantidade - COFINS",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -11454,9 +11395,19 @@
      "obrigatorio": false
     },
     {
+     "num": 11,
+     "nome": "ALIQ_COFINS_QUANT",
+     "descricao": "Alíquota da COFINS (em reais)",
+     "tipo": "N",
+     "tamanho": 8,
+     "tamanho_fixo": false,
+     "decimais": 4,
+     "obrigatorio": false
+    },
+    {
      "num": 12,
      "nome": "VL_COFINS",
-     "descricao": "da COFINS do modelo do documento fiscal",
+     "descricao": "Valor da COFINS",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -11466,7 +11417,7 @@
     {
      "num": 13,
      "nome": "COD_MOD",
-     "descricao": "4.1.1",
+     "descricao": "Código do modelo do documento fiscal conforme a Tabela 4.1.1",
      "tipo": "C",
      "tamanho": 2,
      "tamanho_fixo": true,
@@ -11476,7 +11427,7 @@
     {
      "num": 14,
      "nome": "CFOP",
-     "descricao": "fiscal de operação e prestação da conta analítica",
+     "descricao": "Código fiscal de operação e prestação",
      "tipo": "N",
      "tamanho": 4,
      "tamanho_fixo": true,
@@ -11486,7 +11437,7 @@
     {
      "num": 15,
      "nome": "COD_CTA",
-     "descricao": "debitada/creditada",
+     "descricao": "Código da conta analítica contábil debitada / creditada",
      "tipo": "C",
      "tamanho": 255,
      "tamanho_fixo": false,
@@ -11496,7 +11447,7 @@
     {
      "num": 16,
      "nome": "INFO_COMPL",
-     "descricao": "complementar",
+     "descricao": "Informação complementar",
      "tipo": "C",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -11674,12 +11625,12 @@
    "nivel": 3,
    "ocorrencia": "1:N",
    "pagina_guia": 268,
-   "qtd_campos": 13,
+   "qtd_campos": 16,
    "campos": [
     {
      "num": 1,
-     "nome": "REGVL_REC_COMP",
-     "descricao": "fixo contendo \"F550\" total da receita auferida, referente à",
+     "nome": "REG",
+     "descricao": "Texto fixo contendo \"F550\"",
      "tipo": "C",
      "tamanho": 4,
      "tamanho_fixo": true,
@@ -11687,19 +11638,29 @@
      "obrigatorio": true
     },
     {
-     "num": 3,
-     "nome": "CST_PIS",
-     "descricao": "",
-     "tipo": "",
+     "num": 2,
+     "nome": "VL_REC_COMP",
+     "descricao": "Valor total da receita auferida, referente à combinação de CST e Alíquota.",
+     "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
+     "decimais": 2,
+     "obrigatorio": true
+    },
+    {
+     "num": 3,
+     "nome": "CST_PIS",
+     "descricao": "Código da Situação Tributária referente ao PIS/PASEP",
+     "tipo": "N",
+     "tamanho": 2,
+     "tamanho_fixo": true,
      "decimais": 0,
-     "obrigatorio": false
+     "obrigatorio": true
     },
     {
      "num": 4,
      "nome": "VL_DESC_PIS",
-     "descricao": "do desconto / exclusão da base de",
+     "descricao": "Valor do desconto / exclusão da base de cálculo",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -11709,7 +11670,7 @@
     {
      "num": 5,
      "nome": "VL_BC_PIS",
-     "descricao": "da base de cálculo do PIS/PASEP",
+     "descricao": "Valor da base de cálculo do PIS/PASEP",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -11719,7 +11680,7 @@
     {
      "num": 6,
      "nome": "ALIQ_PIS",
-     "descricao": "do PIS/PASEP (em percentual)",
+     "descricao": "Alíquota do PIS/PASEP (em percentual)",
      "tipo": "N",
      "tamanho": 8,
      "tamanho_fixo": false,
@@ -11729,7 +11690,7 @@
     {
      "num": 7,
      "nome": "VL_PIS",
-     "descricao": "do PIS/PASEP",
+     "descricao": "Valor do PIS/PASEP",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -11738,8 +11699,8 @@
     },
     {
      "num": 8,
-     "nome": "CST_COFINSVL_DESC_COFIN",
-     "descricao": "da Situação Tributária referente a do desconto / exclusão da base de",
+     "nome": "CST_COFINS",
+     "descricao": "Código da Situação Tributária referente a COFINS",
      "tipo": "N",
      "tamanho": 2,
      "tamanho_fixo": true,
@@ -11747,9 +11708,19 @@
      "obrigatorio": true
     },
     {
+     "num": 9,
+     "nome": "VL_DESC_COFINS",
+     "descricao": "Valor do desconto / exclusão da base de cálculo",
+     "tipo": "N",
+     "tamanho": 0,
+     "tamanho_fixo": false,
+     "decimais": 2,
+     "obrigatorio": false
+    },
+    {
      "num": 10,
      "nome": "VL_BC_COFINS",
-     "descricao": "da base de cálculo da COFINS",
+     "descricao": "Valor da base de cálculo da COFINS",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -11759,7 +11730,7 @@
     {
      "num": 11,
      "nome": "ALIQ_COFINS",
-     "descricao": "da COFINS (em percentual)",
+     "descricao": "Alíquota da COFINS (em percentual)",
      "tipo": "N",
      "tamanho": 8,
      "tamanho_fixo": false,
@@ -11769,7 +11740,7 @@
     {
      "num": 12,
      "nome": "VL_COFINS",
-     "descricao": "da COFINS do modelo do documento fiscal",
+     "descricao": "Valor da COFINS",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -11779,17 +11750,17 @@
     {
      "num": 13,
      "nome": "COD_MOD",
-     "descricao": "4.1.1",
-     "tipo": "",
-     "tamanho": 0,
-     "tamanho_fixo": false,
+     "descricao": "Código do modelo do documento fiscal conforme a Tabela 4.1.1",
+     "tipo": "C",
+     "tamanho": 2,
+     "tamanho_fixo": true,
      "decimais": 0,
      "obrigatorio": false
     },
     {
      "num": 14,
      "nome": "CFOP",
-     "descricao": "fiscal de operação e prestação da conta analítica contábil debitada",
+     "descricao": "Código fiscal de operação e prestação",
      "tipo": "N",
      "tamanho": 4,
      "tamanho_fixo": true,
@@ -11798,8 +11769,18 @@
     },
     {
      "num": 15,
-     "nome": "COD_CTAINFO_COMPL",
-     "descricao": "complementar",
+     "nome": "COD_CTA",
+     "descricao": "Código da conta analítica contábil debitada/creditada",
+     "tipo": "C",
+     "tamanho": 255,
+     "tamanho_fixo": false,
+     "decimais": 0,
+     "obrigatorio": false
+    },
+    {
+     "num": 16,
+     "nome": "INFO_COMPL",
+     "descricao": "Informação complementar",
      "tipo": "C",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -11856,32 +11837,42 @@
    "nivel": 3,
    "ocorrencia": "1:N",
    "pagina_guia": 273,
-   "qtd_campos": 14,
+   "qtd_campos": 16,
    "campos": [
     {
      "num": 1,
-     "nome": "REGVL_REC_COM",
-     "descricao": "fixo contendo \"F560\" total da receita auferida, referente à",
+     "nome": "REG",
+     "descricao": "Texto fixo contendo \"F560\"",
      "tipo": "C",
+     "tamanho": 4,
+     "tamanho_fixo": true,
+     "decimais": 0,
+     "obrigatorio": true
+    },
+    {
+     "num": 2,
+     "nome": "VL_REC_COMP",
+     "descricao": "Valor total da receita auferida, referente à combinação de CST e Alíquota.",
+     "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
-     "decimais": 0,
+     "decimais": 2,
      "obrigatorio": true
     },
     {
      "num": 3,
      "nome": "CST_PIS",
-     "descricao": "",
+     "descricao": "Código da Situação Tributária referente ao PIS/PASEP",
      "tipo": "N",
-     "tamanho": 0,
-     "tamanho_fixo": false,
+     "tamanho": 2,
+     "tamanho_fixo": true,
      "decimais": 0,
      "obrigatorio": true
     },
     {
      "num": 4,
-     "nome": "VL_DESC_PISQUANT_BC_PI",
-     "descricao": "do desconto / exclusão",
+     "nome": "VL_DESC_PIS",
+     "descricao": "Valor do desconto / exclusão",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -11890,8 +11881,8 @@
     },
     {
      "num": 5,
-     "nome": "ALIQ_PIS_QU",
-     "descricao": "cálculo em quantidade - PIS/PASEP",
+     "nome": "QUANT_BC_PIS",
+     "descricao": "Base de cálculo em quantidade - PIS/PASEP",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -11900,8 +11891,8 @@
     },
     {
      "num": 6,
-     "nome": "ANT",
-     "descricao": "do PIS/PASEP (em reais)",
+     "nome": "ALIQ_PIS_QUANT",
+     "descricao": "Alíquota do PIS/PASEP (em reais)",
      "tipo": "N",
      "tamanho": 8,
      "tamanho_fixo": false,
@@ -11911,7 +11902,7 @@
     {
      "num": 7,
      "nome": "VL_PIS",
-     "descricao": "do PIS/PASEP da Situação Tributária referente a",
+     "descricao": "Valor do PIS/PASEP",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -11920,18 +11911,18 @@
     },
     {
      "num": 8,
-     "nome": "CST_COFINSCOFINSVL_DESC_COF",
-     "descricao": "",
+     "nome": "CST_COFINS",
+     "descricao": "Código da Situação Tributária referente a COFINS",
      "tipo": "N",
-     "tamanho": 0,
-     "tamanho_fixo": false,
+     "tamanho": 2,
+     "tamanho_fixo": true,
      "decimais": 0,
      "obrigatorio": true
     },
     {
      "num": 9,
-     "nome": "INSQUANT_BC_C",
-     "descricao": "do desconto / exclusão",
+     "nome": "VL_DESC_COFINS",
+     "descricao": "Valor do desconto / exclusão",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -11940,8 +11931,8 @@
     },
     {
      "num": 10,
-     "nome": "OFINSALIQ_COFINS",
-     "descricao": "cálculo em quantidade – COFINS",
+     "nome": "QUANT_BC_COFINS",
+     "descricao": "Base de cálculo em quantidade - COFINS",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -11949,9 +11940,19 @@
      "obrigatorio": false
     },
     {
+     "num": 11,
+     "nome": "ALIQ_COFINS_QUANT",
+     "descricao": "Alíquota da COFINS (em reais)",
+     "tipo": "N",
+     "tamanho": 8,
+     "tamanho_fixo": false,
+     "decimais": 4,
+     "obrigatorio": false
+    },
+    {
      "num": 12,
      "nome": "VL_COFINS",
-     "descricao": "da COFINS do modelo do documento fiscal",
+     "descricao": "Valor da COFINS",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -11961,27 +11962,27 @@
     {
      "num": 13,
      "nome": "COD_MOD",
-     "descricao": "4.1.1",
+     "descricao": "Código do modelo do documento fiscal conforme a Tabela 4.1.1",
      "tipo": "C",
-     "tamanho": 4,
-     "tamanho_fixo": false,
+     "tamanho": 2,
+     "tamanho_fixo": true,
      "decimais": 0,
      "obrigatorio": false
     },
     {
      "num": 14,
      "nome": "CFOP",
-     "descricao": "fiscal de operação e prestação da conta analítica contábil debitada",
+     "descricao": "Código fiscal de operação e prestação",
      "tipo": "N",
-     "tamanho": 0,
-     "tamanho_fixo": false,
+     "tamanho": 4,
+     "tamanho_fixo": true,
      "decimais": 0,
      "obrigatorio": false
     },
     {
      "num": 15,
      "nome": "COD_CTA",
-     "descricao": "",
+     "descricao": "Código da conta analítica contábil debitada / creditada",
      "tipo": "C",
      "tamanho": 255,
      "tamanho_fixo": false,
@@ -11991,7 +11992,7 @@
     {
      "num": 16,
      "nome": "INFO_COMPL",
-     "descricao": "complementar",
+     "descricao": "Informação complementar",
      "tipo": "C",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -13084,7 +13085,7 @@
     {
      "num": 2,
      "nome": "COD_CONT",
-     "descricao": "Código da contribuição social conforme a Tabela 4.3.5.",
+     "descricao": "Código da contribuição social apurada no período, conforme a Tabela 4.3.5.",
      "tipo": "C",
      "tamanho": 2,
      "tamanho_fixo": true,
@@ -13104,7 +13105,7 @@
     {
      "num": 4,
      "nome": "VL_BC_CONT",
-     "descricao": "Valor da Base de Cálculo da",
+     "descricao": "Valor da Base de Cálculo da Contribuição",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -13113,38 +13114,28 @@
     },
     {
      "num": 5,
-     "nome": "ALIQ_PIS",
-     "descricao": "Alíquota do PIS/PASEP (em",
+     "nome": "VL_AJUS_ACRES_BC_PIS",
+     "descricao": "Valor total dos ajustes de acréscimo da base de cálculo",
      "tipo": "N",
-     "tamanho": 8,
+     "tamanho": 0,
      "tamanho_fixo": false,
-     "decimais": 4,
+     "decimais": 2,
      "obrigatorio": false
     },
     {
      "num": 6,
-     "nome": "QUANT_BC_PIS",
-     "descricao": "Quantidade – Base de cálculo",
+     "nome": "VL_AJUS_REDUC_BC_PIS",
+     "descricao": "Valor total dos ajustes de redução da base de cálculo",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
-     "decimais": 3,
+     "decimais": 2,
      "obrigatorio": false
     },
     {
      "num": 7,
-     "nome": "ALIQ_PIS_QUANT",
-     "descricao": "Alíquota do PIS (em reais)",
-     "tipo": "N",
-     "tamanho": 0,
-     "tamanho_fixo": false,
-     "decimais": 4,
-     "obrigatorio": false
-    },
-    {
-     "num": 8,
-     "nome": "VL_CONT_APUR",
-     "descricao": "Valor total da contribuição social",
+     "nome": "VL_BC_CONT_AJUS",
+     "descricao": "Valor da Base de Cálculo da Contribuição, após ajustes (04 + 05 – 06)",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -13152,7 +13143,47 @@
      "obrigatorio": true
     },
     {
+     "num": 8,
+     "nome": "ALIQ_PIS",
+     "descricao": "Alíquota da PIS/PASEP (em percentual)",
+     "tipo": "N",
+     "tamanho": 8,
+     "tamanho_fixo": false,
+     "decimais": 4,
+     "obrigatorio": false
+    },
+    {
      "num": 9,
+     "nome": "QUANT_BC_PIS",
+     "descricao": "Quantidade – Base de cálculo PIS/PASEP",
+     "tipo": "N",
+     "tamanho": 0,
+     "tamanho_fixo": false,
+     "decimais": 3,
+     "obrigatorio": false
+    },
+    {
+     "num": 10,
+     "nome": "ALIQ_PIS_QUANT",
+     "descricao": "Alíquota da PIS/PASEP (em reais)",
+     "tipo": "N",
+     "tamanho": 0,
+     "tamanho_fixo": false,
+     "decimais": 4,
+     "obrigatorio": false
+    },
+    {
+     "num": 11,
+     "nome": "VL_CONT_APUR",
+     "descricao": "Valor total da contribuição social apurada",
+     "tipo": "N",
+     "tamanho": 0,
+     "tamanho_fixo": false,
+     "decimais": 2,
+     "obrigatorio": true
+    },
+    {
+     "num": 12,
      "nome": "VL_AJUS_ACRES",
      "descricao": "Valor total dos ajustes de acréscimo",
      "tipo": "N",
@@ -13162,7 +13193,7 @@
      "obrigatorio": true
     },
     {
-     "num": 10,
+     "num": 13,
      "nome": "VL_AJUS_REDUC",
      "descricao": "Valor total dos ajustes de redução",
      "tipo": "N",
@@ -13172,39 +13203,9 @@
      "obrigatorio": true
     },
     {
-     "num": 11,
-     "nome": "VL_CONT_DIFER",
-     "descricao": "Valor da contribuição a diferir",
-     "tipo": "N",
-     "tamanho": 0,
-     "tamanho_fixo": false,
-     "decimais": 2,
-     "obrigatorio": false
-    },
-    {
-     "num": 12,
-     "nome": "VL_CONT_DIFER_ANT",
-     "descricao": "Valor da contribuição diferida anteriores",
-     "tipo": "N",
-     "tamanho": 0,
-     "tamanho_fixo": false,
-     "decimais": 2,
-     "obrigatorio": false
-    },
-    {
-     "num": 13,
-     "nome": "VL_CONT_PER",
-     "descricao": "Valor Total da Contribuição do 10 – 11+12)",
-     "tipo": "N",
-     "tamanho": 0,
-     "tamanho_fixo": false,
-     "decimais": 2,
-     "obrigatorio": true
-    },
-    {
      "num": 14,
      "nome": "VL_CONT_DIFER",
-     "descricao": "da contribuição a diferir no período",
+     "descricao": "Valor da contribuição a diferir no período",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -13213,8 +13214,8 @@
     },
     {
      "num": 15,
-     "nome": "VL_CONT_DIFER",
-     "descricao": "da contribuição diferida em",
+     "nome": "VL_CONT_DIFER_ANT",
+     "descricao": "Valor da contribuição diferida em períodos anteriores",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -13224,7 +13225,7 @@
     {
      "num": 16,
      "nome": "VL_CONT_PER",
-     "descricao": "Total da Contribuição do Período (11 14+15)",
+     "descricao": "Valor Total da Contribuição do Período (11 + 12 – 13 – 14 + 15)",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -13422,7 +13423,7 @@
    "nivel": 4,
    "ocorrencia": "1:N (por tipo de contribuição M200)",
    "pagina_guia": 321,
-   "qtd_campos": 6,
+   "qtd_campos": 7,
    "campos": [
     {
      "num": 1,
@@ -13447,11 +13448,21 @@
     {
      "num": 3,
      "nome": "VL_AJ",
-     "descricao": "Valor do ajuste 04 COD_AJ Código do ajuste, conforme a Tabela indicada no item 4.3.8. C 002* S",
+     "descricao": "Valor do ajuste",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
      "decimais": 2,
+     "obrigatorio": true
+    },
+    {
+     "num": 4,
+     "nome": "COD_AJ",
+     "descricao": "Código do ajuste, conforme a Tabela indicada no item 4.3.8.",
+     "tipo": "C",
+     "tamanho": 2,
+     "tamanho_fixo": true,
+     "decimais": 0,
      "obrigatorio": true
     },
     {
@@ -13477,7 +13488,7 @@
     {
      "num": 7,
      "nome": "DT_REF",
-     "descricao": "Data de referência do ajuste (ddmmaaaa) Observações: Nível hierárquico - 4 Ocorrência – 1:N (por tipo de contribuição M200) Campo 01 - Valor Válido: [M220] Campo 02 - Valores Válidos: [0, 1] Campo 03 - Preenchimento: informar o valor do ajuste de redução ou de acréscimo. A soma de todos os valores deste campo, representando ajustes de acréscimo (IND_AJ = 1) deverá ser transportada para o campo 09 ",
+     "descricao": "Data de referência do ajuste (ddmmaaaa)",
      "tipo": "N",
      "tamanho": 8,
      "tamanho_fixo": true,
@@ -14610,7 +14621,7 @@
     {
      "num": 1,
      "nome": "REG",
-     "descricao": "fixo contendo \"M610\"",
+     "descricao": "Texto fixo contendo \"M610\"",
      "tipo": "C",
      "tamanho": 4,
      "tamanho_fixo": true,
@@ -14620,17 +14631,17 @@
     {
      "num": 2,
      "nome": "COD_CONT",
-     "descricao": "da contribuição social apurada no a Tabela 4.3.5.",
+     "descricao": "Código da contribuição social apurada no período, conforme a Tabela 4.3.5.",
      "tipo": "C",
      "tamanho": 2,
-     "tamanho_fixo": false,
+     "tamanho_fixo": true,
      "decimais": 0,
      "obrigatorio": true
     },
     {
      "num": 3,
      "nome": "VL_REC_BRT",
-     "descricao": "da Receita Bruta",
+     "descricao": "Valor da Receita Bruta",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -14640,7 +14651,7 @@
     {
      "num": 4,
      "nome": "VL_BC_CONT",
-     "descricao": "da Base de Cálculo da Contribuição",
+     "descricao": "Valor da Base de Cálculo da Contribuição",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -14649,8 +14660,38 @@
     },
     {
      "num": 5,
+     "nome": "VL_AJUS_ACRES_BC_COFINS",
+     "descricao": "Valor total dos ajustes de acréscimo da base de cálculo",
+     "tipo": "N",
+     "tamanho": 0,
+     "tamanho_fixo": false,
+     "decimais": 2,
+     "obrigatorio": false
+    },
+    {
+     "num": 6,
+     "nome": "VL_AJUS_REDUC_BC_COFINS",
+     "descricao": "Valor total dos ajustes de redução da base de cálculo",
+     "tipo": "N",
+     "tamanho": 0,
+     "tamanho_fixo": false,
+     "decimais": 2,
+     "obrigatorio": false
+    },
+    {
+     "num": 7,
+     "nome": "VL_BC_CONT_AJUS",
+     "descricao": "Valor da Base de Cálculo da Contribuição, após ajustes (04 + 05 – 06)",
+     "tipo": "N",
+     "tamanho": 0,
+     "tamanho_fixo": false,
+     "decimais": 2,
+     "obrigatorio": true
+    },
+    {
+     "num": 8,
      "nome": "ALIQ_COFINS",
-     "descricao": "do COFINS (em percentual)",
+     "descricao": "Alíquota da COFINS (em percentual)",
      "tipo": "N",
      "tamanho": 8,
      "tamanho_fixo": false,
@@ -14658,9 +14699,9 @@
      "obrigatorio": false
     },
     {
-     "num": 6,
+     "num": 9,
      "nome": "QUANT_BC_COFINS",
-     "descricao": "– Base de cálculo COFINS",
+     "descricao": "Quantidade – Base de cálculo COFINS",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -14668,9 +14709,9 @@
      "obrigatorio": false
     },
     {
-     "num": 7,
+     "num": 10,
      "nome": "ALIQ_COFINS_QUANT",
-     "descricao": "do COFINS (em reais)",
+     "descricao": "Alíquota da COFINS (em reais)",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -14678,59 +14719,29 @@
      "obrigatorio": false
     },
     {
-     "num": 8,
-     "nome": "VL_CONT_APUR",
-     "descricao": "total da contribuição social apurada",
-     "tipo": "N",
-     "tamanho": 0,
-     "tamanho_fixo": false,
-     "decimais": 2,
-     "obrigatorio": true
-    },
-    {
-     "num": 9,
-     "nome": "VL_AJUS_ACRES",
-     "descricao": "total dos ajustes de acréscimo",
-     "tipo": "N",
-     "tamanho": 0,
-     "tamanho_fixo": false,
-     "decimais": 2,
-     "obrigatorio": true
-    },
-    {
-     "num": 10,
-     "nome": "VL_AJUS_REDUC",
-     "descricao": "total dos ajustes de redução",
-     "tipo": "N",
-     "tamanho": 0,
-     "tamanho_fixo": false,
-     "decimais": 2,
-     "obrigatorio": true
-    },
-    {
      "num": 11,
-     "nome": "VL_CONT_DIFER",
-     "descricao": "da contribuição a diferir no período",
+     "nome": "VL_CONT_APUR",
+     "descricao": "Valor total da contribuição social apurada",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
      "decimais": 2,
-     "obrigatorio": false
+     "obrigatorio": true
     },
     {
      "num": 12,
-     "nome": "VL_CONT_DIFER_ANT",
-     "descricao": "da contribuição diferida em períodos",
+     "nome": "VL_AJUS_ACRES",
+     "descricao": "Valor total dos ajustes de acréscimo",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
      "decimais": 2,
-     "obrigatorio": false
+     "obrigatorio": true
     },
     {
      "num": 13,
-     "nome": "VL_CONT_PER",
-     "descricao": "Total da Contribuição do Período (08 +12)",
+     "nome": "VL_AJUS_REDUC",
+     "descricao": "Valor total dos ajustes de redução",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -14740,7 +14751,7 @@
     {
      "num": 14,
      "nome": "VL_CONT_DIFER",
-     "descricao": "da contribuição a diferir no período",
+     "descricao": "Valor da contribuição a diferir no período",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -14749,8 +14760,8 @@
     },
     {
      "num": 15,
-     "nome": "VL_CONT_DIFER",
-     "descricao": "da contribuição diferida em",
+     "nome": "VL_CONT_DIFER_ANT",
+     "descricao": "Valor da contribuição diferida em períodos anteriores",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -14760,7 +14771,7 @@
     {
      "num": 16,
      "nome": "VL_CONT_PER",
-     "descricao": "Total da Contribuição do Período (11 14+15)",
+     "descricao": "Valor Total da Contribuição do Período (11 + 12 – 13 – 14 + 15)",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -15532,7 +15543,7 @@
     {
      "num": 1,
      "nome": "REG",
-     "descricao": "contendo “P010”",
+     "descricao": "Texto fixo contendo \"P100\"",
      "tipo": "C",
      "tamanho": 4,
      "tamanho_fixo": true,
@@ -15542,9 +15553,9 @@
     {
      "num": 2,
      "nome": "DT_INI",
-     "descricao": "inscrição do estabelecimento no CNPJ.",
-     "tipo": "N",
-     "tamanho": 14,
+     "descricao": "Data inicial a que a apuração se refere",
+     "tipo": "C",
+     "tamanho": 8,
      "tamanho_fixo": true,
      "decimais": 0,
      "obrigatorio": true
@@ -15552,7 +15563,7 @@
     {
      "num": 3,
      "nome": "DT_FIN",
-     "descricao": "Data final a que a apuração se",
+     "descricao": "Data final a que a apuração se refere",
      "tipo": "C",
      "tamanho": 8,
      "tamanho_fixo": true,
@@ -15562,7 +15573,7 @@
     {
      "num": 4,
      "nome": "VL_REC_TOT_EST",
-     "descricao": "Valor da Receita Bruta Total do no Período",
+     "descricao": "Valor da Receita Bruta Total do Estabelecimento no Período",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -15572,7 +15583,7 @@
     {
      "num": 5,
      "nome": "COD_ATIV_ECON",
-     "descricao": "Código indicador correspondente sujeita a incidência da Contribuição Previdenciária sobre a Receita Tabela 5.1.1.",
+     "descricao": "Código indicador correspondente à atividade sujeita a incidência da Contribuição Previdenciária sobre a Receita Bruta, conforme Tabela 5.1.1.",
      "tipo": "C",
      "tamanho": 8,
      "tamanho_fixo": true,
@@ -15582,7 +15593,7 @@
     {
      "num": 6,
      "nome": "VL_REC_ATIV_ESTAB",
-     "descricao": "Valor da Receita Bruta do correspondente às atividades/produtos no Campo 05 (COD_ATIV_ECON)",
+     "descricao": "Valor da Receita Bruta do Estabelecimento, correspondente às atividades/produtos referidos no Campo 05 (COD_ATIV_ECON)",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -15592,7 +15603,7 @@
     {
      "num": 7,
      "nome": "VL_EXC",
-     "descricao": "Valor das Exclusões da Receita no Campo 06",
+     "descricao": "Valor das Exclusões da Receita Bruta informada no Campo 06",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -15602,7 +15613,7 @@
     {
      "num": 8,
      "nome": "VL_BC_CONT",
-     "descricao": "Valor da Base de Cálculo da Previdenciária sobre a Receita (Campo 08 = Campo 06 – Campo",
+     "descricao": "Valor da Base de Cálculo da Contribuição Previdenciária sobre a Receita Bruta (Campo 08 = Campo 06 – Campo 07)",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -15611,8 +15622,8 @@
     },
     {
      "num": 9,
-     "nome": "ALIQ_CONTVL_CONT_A",
-     "descricao": "Alíquota da Contribuição Receita B ruta Valor da Contribuição Previdenciária",
+     "nome": "ALIQ_CONT",
+     "descricao": "Alíquota da Contribuição Previdenciária sobre a Receita Bruta",
      "tipo": "N",
      "tamanho": 8,
      "tamanho_fixo": false,
@@ -15621,18 +15632,18 @@
     },
     {
      "num": 10,
-     "nome": "PU",
-     "descricao": "sobre a Receita Bruta",
-     "tipo": "",
+     "nome": "VL_CONT_APU",
+     "descricao": "Valor da Contribuição Previdenciária Apurada sobre a Receita Bruta",
+     "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
-     "decimais": 0,
-     "obrigatorio": false
+     "decimais": 2,
+     "obrigatorio": true
     },
     {
      "num": 11,
-     "nome": "COD_CTAINFO_COMP",
-     "descricao": "Código da conta analítica contábil Contribuição Previdenciária Bruta Informação complementar do",
+     "nome": "COD_CTA",
+     "descricao": "Código da conta analítica contábil referente à Contribuição Previdenciária sobre a Receita Bruta",
      "tipo": "C",
      "tamanho": 255,
      "tamanho_fixo": false,
@@ -15641,9 +15652,9 @@
     },
     {
      "num": 12,
-     "nome": "L",
-     "descricao": "",
-     "tipo": "",
+     "nome": "INFO_COMPL",
+     "descricao": "Informação complementar do registro",
+     "tipo": "C",
      "tamanho": 0,
      "tamanho_fixo": false,
      "decimais": 0,
@@ -17364,12 +17375,12 @@
    "nivel": 2,
    "ocorrencia": "Vários (por arquivo)",
    "pagina_guia": 394,
-   "qtd_campos": 7,
+   "qtd_campos": 8,
    "campos": [
     {
      "num": 1,
      "nome": "REG",
-     "descricao": "Texto fixo contendo \"1300\" 02 IND_NAT_RET Indicador de Natureza da Retenção na Fonte até N 002* S 2013: 01 - Retenção por Órgãos, Autarquias e Fundações Federais 02 - Retenção por outras Entidades da Administração Pública Federal - 03 - Retenção por Pessoas Jurídicas de Direito Privado 04 - Recolhimento por Sociedade Cooperativa 05 - Retenção por Fabricante de Máquinas e Veículos 99 - Outras Reten",
+     "descricao": "Texto fixo contendo \"1300\"",
      "tipo": "C",
      "tamanho": 4,
      "tamanho_fixo": true,
@@ -17379,7 +17390,7 @@
     {
      "num": 2,
      "nome": "IND_NAT_RET",
-     "descricao": "de Natureza da Retenção na Retenção por Órgãos, Autarquias e Retenção por outras Entidades da Federal Retenção por Pessoas Jurídicas de Direito Recolhimento por Sociedade Cooperativa Retenção por Fabricante de Máquinas e Outras Retenções de Natureza da Retenção na de 2014: Rendimentos sujeitos ao Regime (PJ Tributada pelo Lucro Cumulativo (PJ Tributada pelo Presumido/Arbitrado): Retenção por Órgão",
+     "descricao": "Indicador de Natureza da Retenção na Fonte. Até 2013: 01 a 05 e 99. A partir de 2014, rendimentos sujeitos à regra geral: 01 a 05 e 99; rendimentos sujeitos à regra específica de incidência cumulativa (art. 8º da Lei nº 10.637/2002 e art. 10 da Lei nº 10.833/2003): 51 a 55 e 59.",
      "tipo": "N",
      "tamanho": 2,
      "tamanho_fixo": true,
@@ -17389,7 +17400,7 @@
     {
      "num": 3,
      "nome": "PR_REC_RET",
-     "descricao": "do Recebimento e da Retenção",
+     "descricao": "Período do Recebimento e da Retenção (MM/AAAA)",
      "tipo": "N",
      "tamanho": 6,
      "tamanho_fixo": false,
@@ -17399,7 +17410,7 @@
     {
      "num": 4,
      "nome": "VL_RET_APU",
-     "descricao": "Total da Retenção",
+     "descricao": "Valor Total da Retenção",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -17409,7 +17420,7 @@
     {
      "num": 5,
      "nome": "VL_RET_DED",
-     "descricao": "da Retenção deduzida da Contribuição período da escrituração e em períodos",
+     "descricao": "Valor da Retenção deduzida da Contribuição devida no período da escrituração e em períodos anteriores.",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -17418,8 +17429,18 @@
     },
     {
      "num": 6,
-     "nome": "VL_RET_PERVL_RET_DCOMP",
-     "descricao": "da Retenção utilizada mediante Pedido da Retenção utilizada mediante Declaração",
+     "nome": "VL_RET_PER",
+     "descricao": "Valor da Retenção utilizada mediante Pedido de Restituição.",
+     "tipo": "N",
+     "tamanho": 0,
+     "tamanho_fixo": false,
+     "decimais": 2,
+     "obrigatorio": true
+    },
+    {
+     "num": 7,
+     "nome": "VL_RET_DCOMP",
+     "descricao": "Valor da Retenção utilizada mediante Declaração de Compensação.",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -17429,12 +17450,12 @@
     {
      "num": 8,
      "nome": "SLD_RET",
-     "descricao": "(04 – 05 - 06 - 07).",
-     "tipo": "",
+     "descricao": "Saldo de Retenção a utilizar em períodos de apuração futuros (04 – 05 - 06 - 07).",
+     "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
-     "decimais": 0,
-     "obrigatorio": false
+     "decimais": 2,
+     "obrigatorio": true
     }
    ]
   },
@@ -17444,7 +17465,7 @@
    "titulo": "Controle de Créditos Fiscais – Cofins",
    "nivel": 2,
    "ocorrencia": "Vários (por arquivo)",
-   "pagina_guia": 396,
+   "pagina_guia": 397,
    "qtd_campos": 18,
    "campos": [
     {
@@ -17460,7 +17481,7 @@
     {
      "num": 2,
      "nome": "PER_APU_CRED",
-     "descricao": "Período de Apuração do Crédito",
+     "descricao": "Período de Apuração do Crédito (MM/AAAA)",
      "tipo": "N",
      "tamanho": 6,
      "tamanho_fixo": false,
@@ -17470,7 +17491,7 @@
     {
      "num": 3,
      "nome": "ORIG_CRED",
-     "descricao": "Indicador da origem do crédito: 01 – Crédito decorrente de operações 02 – Crédito transferido por pessoa",
+     "descricao": "Indicador da origem do crédito: 01 – Crédito decorrente de operações próprias; 02 – Crédito transferido por pessoa jurídica sucedida.",
      "tipo": "N",
      "tamanho": 2,
      "tamanho_fixo": true,
@@ -17480,7 +17501,7 @@
     {
      "num": 4,
      "nome": "CNPJ_SUC",
-     "descricao": "CNPJ da pessoa jurídica ORIG_CRED = 02).",
+     "descricao": "CNPJ da pessoa jurídica cedente do crédito (se ORIG_CRED = 02).",
      "tipo": "N",
      "tamanho": 14,
      "tamanho_fixo": true,
@@ -17490,7 +17511,7 @@
     {
      "num": 5,
      "nome": "COD_CRED",
-     "descricao": "Código do Tipo do Crédito, conforme",
+     "descricao": "Código do Tipo do Crédito, conforme Tabela 4.3.6.",
      "tipo": "N",
      "tamanho": 3,
      "tamanho_fixo": true,
@@ -17500,7 +17521,7 @@
     {
      "num": 6,
      "nome": "VL_CRED_APU",
-     "descricao": "Valor Total do crédito apurado Digital (Registro M500) ou em (Fichas 16A e 16B) de período",
+     "descricao": "Valor Total do crédito apurado na Escrituração Fiscal Digital (Registro M500) ou em demonstrativo DACON (Fichas 16A e 16B) de período anterior.",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -17510,7 +17531,7 @@
     {
      "num": 7,
      "nome": "VL_CRED_EXT_APU",
-     "descricao": "Valor de Crédito Extemporâneo 1501), referente a Período",
+     "descricao": "Valor de Crédito Extemporâneo Apurado (Registro 1501), referente a Período Anterior, Informado no Campo 02 – PER_APU_CRED",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -17520,7 +17541,7 @@
     {
      "num": 8,
      "nome": "VL_TOT_CRED_APU",
-     "descricao": "Valor Total do Crédito Apurado (06",
+     "descricao": "Valor Total do Crédito Apurado (06 + 07)",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -17529,8 +17550,8 @@
     },
     {
      "num": 9,
-     "nome": "VL_CRED_DESC_PAVL_CRED_PER_PA_",
-     "descricao": "Valor do Crédito utilizado Período(s) Anterior(es) Valor do Crédito utilizado",
+     "nome": "VL_CRED_DESC_PA_ANT",
+     "descricao": "Valor do Crédito utilizado mediante Desconto, em Período(s) Anterior(es)",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -17539,8 +17560,8 @@
     },
     {
      "num": 10,
-     "nome": "ANTVL_CRED_DCOMP_",
-     "descricao": "Ressarcimento, em Período(s) Valor do Crédito utilizado",
+     "nome": "VL_CRED_PER_PA_ANT",
+     "descricao": "Valor do Crédito utilizado mediante Pedido de Ressarcimento, em Período(s) Anterior(es).",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -17549,18 +17570,8 @@
     },
     {
      "num": 11,
-     "nome": "PA_ANTSD_CRED_DISP_EF",
-     "descricao": "Compensação Intermediária (Crédito Período(s) Anterior(es) Saldo do Crédito Disponível",
-     "tipo": "N",
-     "tamanho": 0,
-     "tamanho_fixo": false,
-     "decimais": 2,
-     "obrigatorio": true
-    },
-    {
-     "num": 12,
-     "nome": "DVL_CRED_DESC_EF",
-     "descricao": "Período de Escrituração (08-09-10-11) Valor do Crédito descontado",
+     "nome": "VL_CRED_DCOMP_PA_ANT",
+     "descricao": "Valor do Crédito utilizado mediante Declaração de Compensação Intermediária (Crédito de Exportação), em Período(s) Anterior(es)",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -17568,9 +17579,19 @@
      "obrigatorio": false
     },
     {
+     "num": 12,
+     "nome": "SD_CRED_DISP_EFD",
+     "descricao": "Saldo do Crédito Disponível para Utilização neste Período de Escrituração (08-09-10-11)",
+     "tipo": "N",
+     "tamanho": 0,
+     "tamanho_fixo": false,
+     "decimais": 2,
+     "obrigatorio": true
+    },
+    {
      "num": 13,
-     "nome": "D",
-     "descricao": "escrituração Valor do Crédito objeto de Pedido",
+     "nome": "VL_CRED_DESC_EFD",
+     "descricao": "Valor do Crédito descontado neste período de escrituração",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -17579,8 +17600,8 @@
     },
     {
      "num": 14,
-     "nome": "VL_CRED_PER_EFDVL_CRED_DCOMP_",
-     "descricao": "(PER) neste período de escrituração Valor do Crédito utilizado",
+     "nome": "VL_CRED_PER_EFD",
+     "descricao": "Valor do Crédito objeto de Pedido de Ressarcimento (PER) neste período de escrituração",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -17589,8 +17610,8 @@
     },
     {
      "num": 15,
-     "nome": "EFD",
-     "descricao": "Compensação Intermediária escrituração Valor do crédito transferido em",
+     "nome": "VL_CRED_DCOMP_EFD",
+     "descricao": "Valor do Crédito utilizado mediante Declaração de Compensação Intermediária neste período de escrituração",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -17600,17 +17621,17 @@
     {
      "num": 16,
      "nome": "VL_CRED_TRANS",
-     "descricao": "incorporação",
-     "tipo": "",
+     "descricao": "Valor do crédito transferido em evento de cisão, fusão ou incorporação",
+     "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
-     "decimais": 0,
+     "decimais": 2,
      "obrigatorio": false
     },
     {
      "num": 17,
      "nome": "VL_CRED_OUT",
-     "descricao": "Valor do crédito utilizado por outras Saldo de créditos a utilizar em",
+     "descricao": "Valor do crédito utilizado por outras formas",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -17620,12 +17641,12 @@
     {
      "num": 18,
      "nome": "SLD_CRED_FIM",
-     "descricao": "futuro (12-13-14-15-16-17).",
-     "tipo": "",
+     "descricao": "Saldo de créditos a utilizar em período de apuração futuro (12-13-14-15-16-17).",
+     "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
-     "decimais": 0,
-     "obrigatorio": false
+     "decimais": 2,
+     "obrigatorio": true
     }
    ]
   },
@@ -18160,12 +18181,22 @@
    "nivel": 3,
    "ocorrencia": "1:N",
    "pagina_guia": 405,
-   "qtd_campos": 4,
+   "qtd_campos": 5,
    "campos": [
+    {
+     "num": 1,
+     "nome": "REG",
+     "descricao": "Texto fixo contendo \"1620\"",
+     "tipo": "C",
+     "tamanho": 4,
+     "tamanho_fixo": true,
+     "decimais": 0,
+     "obrigatorio": true
+    },
     {
      "num": 2,
      "nome": "PER_APU_CRED",
-     "descricao": "de Apuração do Crédito (MM/AAAA)",
+     "descricao": "Período de Apuração do Crédito (MM/AAAA)",
      "tipo": "N",
      "tamanho": 6,
      "tamanho_fixo": false,
@@ -18175,7 +18206,7 @@
     {
      "num": 3,
      "nome": "ORIG_CRED",
-     "descricao": "da origem do crédito: Crédito decorrente de operações próprias; Crédito transferido por pessoa jurídica",
+     "descricao": "Indicador da origem do crédito: 01 – Crédito decorrente de operações próprias; 02 – Crédito transferido por pessoa jurídica sucedida.",
      "tipo": "N",
      "tamanho": 2,
      "tamanho_fixo": true,
@@ -18185,7 +18216,7 @@
     {
      "num": 4,
      "nome": "COD_CRED",
-     "descricao": "do Tipo do Crédito, conforme Tabela",
+     "descricao": "Código do Tipo do Crédito, conforme Tabela 4.3.6.",
      "tipo": "N",
      "tamanho": 3,
      "tamanho_fixo": true,
@@ -18195,11 +18226,11 @@
     {
      "num": 5,
      "nome": "VL_CRED",
-     "descricao": "do Crédito a Descontar",
+     "descricao": "Valor do Crédito a Descontar",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
-     "decimais": 0,
+     "decimais": 2,
      "obrigatorio": true
     }
    ]
@@ -18211,7 +18242,7 @@
    "nivel": 2,
    "ocorrencia": "Vários (por arquivo)",
    "pagina_guia": 406,
-   "qtd_campos": 7,
+   "qtd_campos": 8,
    "campos": [
     {
      "num": 1,
@@ -18226,7 +18257,7 @@
     {
      "num": 2,
      "nome": "IND_NAT_RET",
-     "descricao": "Indicador de Natureza da Retenção 01 - Retenção por Órgãos, Autarquias Federais 02 - Retenção por outras Entidades Pública Federal 03 - Retenção por Pessoas Jurídicas 04 - Recolhimento por Sociedade 05 - Retenção por Fabricante de 99 - Outras Retenções Indicador de Natureza da Retenção de 2014: Retenção Rendimentos sujeitos Cumulativo (PJ Tributada pelo Cumulativo (PJ Tributada Presumido/Arbitrado",
+     "descricao": "Indicador de Natureza da Retenção na Fonte. Até 2013: 01 a 05 e 99. A partir de 2014, rendimentos sujeitos à regra geral: 01 a 05 e 99; rendimentos sujeitos à regra específica de incidência cumulativa (art. 8º da Lei nº 10.637/2002 e art. 10 da Lei nº 10.833/2003): 51 a 55 e 59.",
      "tipo": "N",
      "tamanho": 2,
      "tamanho_fixo": true,
@@ -18236,7 +18267,7 @@
     {
      "num": 3,
      "nome": "PR_REC_RET",
-     "descricao": "Período do Recebimento e da Retenção",
+     "descricao": "Período do Recebimento e da Retenção (MM/AAAA)",
      "tipo": "N",
      "tamanho": 6,
      "tamanho_fixo": true,
@@ -18256,7 +18287,7 @@
     {
      "num": 5,
      "nome": "VL_RET_DED",
-     "descricao": "Valor da Retenção deduzida da período da escrituração e em períodos",
+     "descricao": "Valor da Retenção deduzida da Contribuição devida no período da escrituração e em períodos anteriores.",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -18265,8 +18296,18 @@
     },
     {
      "num": 6,
-     "nome": "VL_RET_PERVL_RET_DCOMP",
-     "descricao": "Valor da Retenção utilizada mediante Restituição. Valor da Retenção utilizada mediante",
+     "nome": "VL_RET_PER",
+     "descricao": "Valor da Retenção utilizada mediante Pedido de Restituição.",
+     "tipo": "N",
+     "tamanho": 0,
+     "tamanho_fixo": false,
+     "decimais": 2,
+     "obrigatorio": true
+    },
+    {
+     "num": 7,
+     "nome": "VL_RET_DCOMP",
+     "descricao": "Valor da Retenção utilizada mediante Declaração de Compensação.",
      "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
@@ -18276,12 +18317,12 @@
     {
      "num": 8,
      "nome": "SLD_RET",
-     "descricao": "futuros (04 - 05 - 06 - 07).",
-     "tipo": "",
+     "descricao": "Saldo de Retenção a utilizar em períodos de apuração futuros (04 – 05 - 06 - 07).",
+     "tipo": "N",
      "tamanho": 0,
      "tamanho_fixo": false,
-     "decimais": 0,
-     "obrigatorio": false
+     "decimais": 2,
+     "obrigatorio": true
     }
    ]
   },

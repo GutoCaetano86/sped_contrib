@@ -10,7 +10,7 @@ import {
 const layout = carregarLayout();
 
 describe('carregarLayout — totais', () => {
-  it('carrega os 192 registros e 1.624 campos declarados', () => {
+  it('carrega os 192 registros e 1.662 campos declarados', () => {
     expect(layout.layout).toBe('EFD-Contribuicoes');
     expect(layout.versao_guia).toBe('1.35');
     expect(layout.total_registros).toBe(192);
@@ -20,10 +20,10 @@ describe('carregarLayout — totais', () => {
       (soma, r) => soma + r.campos.length,
       0,
     );
-    // 1.624 na extracao original; 1.640 depois de F1-T3 corrigir os 8
-    // registros que os arquivos reais aprovados pelo PVA provaram errados.
-    expect(layout.total_campos).toBe(1640);
-    expect(somaCampos).toBe(1640);
+    // 1.624 na extracao original; 1.662 depois de F1-T3 fechar os 27 registros
+    // que estavam com campo perdido, nome estilhacado ou tipo indefinido.
+    expect(layout.total_campos).toBe(1662);
+    expect(somaCampos).toBe(1662);
   });
 
   it('expoe as caracteristicas do arquivo e a ordem dos blocos', () => {
@@ -153,46 +153,50 @@ describe('carregarLayout — indice por numero de campo', () => {
   });
 });
 
-describe('carregarLayout — pendencias e integridade do dicionario', () => {
-  it('expoe os 21 registros de revisao_manual', () => {
-    expect(layout.pendencias).toHaveLength(21);
-    expect(layout.pendencias.map((p) => p.registro)).toContain('0111');
-    expect(layout.pendencias[0]).toMatchObject({
-      registro: expect.any(String),
-      pagina_guia: expect.any(Number),
-      motivos: expect.any(Array),
-    });
+describe('carregarLayout — deteccao de defeito de integridade', () => {
+  // O dicionario de verdade esta limpo desde F1-T3 — o que a integridade
+  // dele valha esta em dicionario.test.ts. Aqui o alvo e o MECANISMO: sem
+  // uma fixture defeituosa, nada mais exercitaria avisosIntegridade e a
+  // deteccao poderia apodrecer sem ninguem notar.
+  const defeituoso = () => carregarLayout('tests/fixtures/layout_defeituoso.json');
+
+  it('acha nome de campo repetido e diz quais numeros colidem', () => {
+    const aviso = defeituoso().avisosIntegridade.find((a) => a.motivo === 'nome_duplicado');
+    expect(aviso).toMatchObject({ registro: '0000', campo: 'VL_REC' });
+    expect(aviso?.mensagem).toMatch(/2 e 3/);
   });
 
-  it('reporta os 9 campos sem tipo C/N identificado', () => {
-    const semTipo = layout.avisosIntegridade.filter((a) => a.motivo === 'tipo_nao_identificado');
-    expect(semTipo).toHaveLength(9);
-    // Todos caem em registros ja listados para revisao manual.
-    const pendentes = new Set(layout.pendencias.map((p) => p.registro));
-    for (const aviso of semTipo) {
-      expect(pendentes.has(aviso.registro)).toBe(true);
-    }
+  it('em nome repetido o indice guarda a PRIMEIRA ocorrencia', () => {
+    const reg = defeituoso().registro('0000');
+    expect(reg?.campoPorNome.get('VL_REC')?.num).toBe(2);
+    expect(reg?.campos.filter((c) => c.nome === 'VL_REC')).toHaveLength(2);
+    // a segunda so e alcancavel por numero
+    expect(reg?.campoPorNum.get(3)?.nome).toBe('VL_REC');
   });
 
-  it('reporta nomes de campo duplicados, que o indice por nome nao alcanca', () => {
-    const duplicados = layout.avisosIntegridade.filter((a) => a.motivo === 'nome_duplicado');
-    const porRegistro = new Set(duplicados.map((a) => a.registro));
-    expect(porRegistro).toEqual(new Set(['0145', 'C170', 'M210', 'M610']));
-
-    // C170 #28 e #34 sao QUANT_BC de PIS e de COFINS; o sufixo se perdeu na
-    // extracao. So a descricao distingue — ver F1-T3.
-    const c170 = layout.registro('C170');
-    expect(c170?.campoPorNome.get('QUANT_BC')?.num).toBe(28);
-    expect(c170?.campos.filter((c) => c.nome === 'QUANT_BC')).toHaveLength(2);
+  it('acha numeracao com buraco', () => {
+    const aviso = defeituoso().avisosIntegridade.find((a) => a.motivo === 'num_nao_sequencial');
+    expect(aviso?.registro).toBe('C100');
   });
 
-  it('nenhum registro fora de revisao_manual tem numeracao quebrada ou campo 01 diferente de REG', () => {
-    const pendentes = new Set(layout.pendencias.map((p) => p.registro));
-    const estruturais = layout.avisosIntegridade.filter(
-      (a) => a.motivo === 'num_nao_sequencial' || a.motivo === 'campo_01_nao_e_reg',
+  it('acha tipo nao identificado', () => {
+    const aviso = defeituoso().avisosIntegridade.find(
+      (a) => a.motivo === 'tipo_nao_identificado',
     );
-    const inesperados = estruturais.filter((a) => !pendentes.has(a.registro));
-    expect(inesperados).toEqual([]);
+    expect(aviso).toMatchObject({ registro: 'F100', campo: 'SEM_TIPO' });
+  });
+
+  it('acha campo 01 diferente de REG', () => {
+    const aviso = defeituoso().avisosIntegridade.find((a) => a.motivo === 'campo_01_nao_e_reg');
+    expect(aviso).toMatchObject({ registro: 'M100', campo: 'REGCOD_CRED' });
+  });
+
+  it('carrega o dicionario defeituoso mesmo assim, sem lancar', () => {
+    // Defeito de integridade e aviso, nao erro: o produto precisa rodar com
+    // dicionario imperfeito. So falha de schema ou total incoerente lanca.
+    const layoutRuim = defeituoso();
+    expect(layoutRuim.registros.size).toBe(4);
+    expect(layoutRuim.avisosIntegridade.length).toBeGreaterThanOrEqual(4);
   });
 });
 

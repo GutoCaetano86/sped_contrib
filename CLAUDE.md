@@ -10,13 +10,16 @@ Especificação completa em `docs/SPEC.md` (leia-a antes de implementar qualquer
 
 ## Estado atual
 
-`types.ts` e `layout.ts` estão implementados. **Os demais módulos de `lib/sped/` ainda são stubs `export {}`** com o contrato previsto em comentário.
+`types.ts`, `layout.ts`, `parser.ts` e `serializer.ts` estão implementados. **`totalizers.ts`, `validator.ts`, `to-excel.ts` e `from-excel.ts` ainda são stubs `export {}`** com o contrato previsto em comentário.
 
-- [x] Dicionário de leiaute extraído do guia oficial (192 registros, 1.624 campos)
+- [x] Dicionário de leiaute (192 registros, 1.662 campos)
 - [x] F1-T1 — scaffolding (Next 15, TS strict, Tailwind 4, shadcn/ui, Vitest)
 - [x] F1-T2 — `types.ts` + `layout.ts` (loader com zod, índices O(1))
-- [ ] F1-T3 — fechar o dicionário: os 21 de `revisao_manual` **mais** os defeitos abaixo
-- [ ] F1-T4 a F1-T7 — parser, serializer, totalizers, validator
+- [x] F1-T3 — dicionário fechado: 27 registros corrigidos, `revisao_manual` vazia, teste de integridade passando
+- [x] F1-T4 — parser TXT → AST
+- [x] F1-T5 — serializer + round-trip byte a byte
+- [ ] F1-T6 — totalizadores
+- [ ] F1-T7 — validador
 - [ ] Fase 2 — conversão Excel
 - [ ] Fase 3 — SaaS (Supabase, auth, rotas, UI)
 
@@ -46,31 +49,31 @@ python build_layout.py
 
 Em máquinas mais lentas, quebre os intervalos de página em blocos de ~70 páginas (múltiplas chamadas de `dump_pages.py`/`dump_words.py` com `chunks/c2.json`, `words/w2.json` etc.; `build_layout.py` lê todos os `chunks/*.json` e `words/*.json` de uma vez via `glob`).
 
-## Dicionário: o que já foi corrigido e o que falta
+## Dicionário: estado e limites
 
-**Corrigidos e validados contra arquivo aprovado pelo PVA** (F1-T3, parte 1) — os 8 registros em que a contagem de campos do dicionário divergia de arquivo real: `0111` (6, era 4), `0500` (9, era 8), `1100` (18, era 8), `9990` (2, era 3), `C500` (15, era 14), `D100` (23, era 22), `M110` (7, era 6), `M500` (15, era 14). Total de campos foi de 1.624 para 1.640. Hoje **zero divergências** contra os arquivos reais disponíveis.
+**F1-T3 fechada.** 27 registros conferidos e corrigidos, `revisao_manual` vazia, 1.624 → 1.662 campos. O teste em `tests/sped/dicionario.test.ts` trava os critérios: numeração 1..N, campo 01 = `REG`, tipo `C`/`N`, nome único e no padrão do leiaute.
 
-Cobertura empírica: os arquivos reais exercitam 74 dos 192 registros. Os outros **118 nunca aparecem** e só podem ser conferidos contra o guia.
+**Zero divergências** de contagem de campos contra os dois arquivos reais aprovados pelo PVA.
 
-**Ainda quebrados** — os 15 restantes da `revisao_manual`: `C396`, `C810`, `C820`, `C880`, `D201`, `F500`, `F510`, `F550`, `F560`, `M220`, `P100`, `1300`, `1500`, `1620`, `1700`. Reprovam nos critérios de integridade (numeração com buraco, campo 01 ≠ `REG`, tipo não identificado). **O teste de integridade de F1-T3 só passa quando estes forem fechados.**
+**O que o teste NÃO prova.** Ele é estrutural: mostra que o dicionário é coerente, não que descreve o leiaute certo. Os arquivos reais exercitam **74 dos 192** registros; os outros **118 nunca foram comparados com o guia** — são saída da extração que passa nos critérios. `dicionario.test.ts` tem um teste que fixa esse número em 118 para ele não passar despercebido; quando chegarem arquivos de outros perfis, deve baixar.
 
-Ferramentas: `python scripts/conferencia/tabela_guia.py --acha REGISTRO` acha a página, `node scripts/conferencia/compara_fontes.mjs` cruza com as transcrições antigas do autor.
+**A hierarquia de fontes, nesta ordem** (aprendida da pior forma no `M210`):
 
-## Defeitos de NOME do dicionário (achados em F1-T2)
+1. arquivo real aprovado pelo PVA;
+2. transcrições do autor (`script.js` da Pagina-Converter-Sped, `EFDContrib.xlsm`);
+3. Guia Prático v1.35 — **pode estar desatualizado**: dá 13 campos ao `M210`/`M610`, mas arquivo de dez/2021 aceito pelo PVA tem 16.
 
-A spec §2.4 afirma que os 171 registros fora da `revisao_manual` foram validados por três critérios (numeração sequencial, campo 01 = `REG`, tipo `C`/`N`). **Unicidade e integridade do nome do campo não estavam entre eles** — e é justamente o nome que serve de chave do índice O(1) e, na Fase 2, de cabeçalho de coluna no Excel. F1-T3 precisa cobrir também:
+Uma divergência deliberada do texto da v1.35: o `C170` nomeia os campos 28 e 34 de `QUANT_BC` os dois, e adotamos `QUANT_BC_PIS`/`QUANT_BC_COFINS` das versões posteriores — senão a aba do Excel teria duas colunas com o mesmo cabeçalho e a volta para TXT, que mapeia por nome (spec §5.4), não saberia distinguir.
 
-| Registro | Defeito | Nome correto provável |
-| --- | --- | --- |
-| `0000` #13 | `IND_NAT_PJSCPSCPSCP` — texto vizinho da tabela grudou no nome | `IND_NAT_PJ` |
-| `C170` #28 / #34 | ambos `QUANT_BC`; só a descrição distingue (PIS / COFINS) | `QUANT_BC_PIS` / `QUANT_BC_COFINS` |
-| `M210` #11/#14/#15, #13/#16 | `VL_CONT_DIFER` ×3 e `VL_CONT_PER` ×2 | conferir na página do guia |
-| `M610` | idêntico ao `M210` | idem |
-| `0145` #3 / #4 | ambos `VL_REC` | conferir |
+Ferramentas: `python scripts/conferencia/tabela_guia.py --acha REGISTRO` acha a página e `--borda`/`--posicional` leem a tabela; `node scripts/conferencia/compara_fontes.mjs` cruza com as transcrições do autor; `python scripts/conferencia/aplica_correcoes.py` é idempotente e registra cada correção com a página de origem.
 
-`carregarLayout()` não esconde nada disso: expõe tudo em `layout.avisosIntegridade`, com `motivo` tipado (`nome_duplicado`, `tipo_nao_identificado`, `num_nao_sequencial`, `campo_01_nao_e_reg`). Em nome duplicado o índice guarda a **primeira** ocorrência e a segunda fica inacessível por nome — daí o aviso. Os testes em `tests/sped/layout.test.ts` fixam o conjunto atual de defeitos, então **eles vão falhar quando F1-T3 corrigir o dicionário — isso é intencional**, é o sinal de que a correção surtiu efeito; atualize as expectativas junto.
+### Detecção de defeito, para quando o dicionário for mexido de novo
 
-Cuidado relacionado: em 19 registros a numeração dos campos tem buracos, então `campos[num - 1]` devolve o campo errado. Use `registro.campoPorNum`.
+`carregarLayout()` acumula os defeitos que encontra em `layout.avisosIntegridade`, com `motivo` tipado (`nome_duplicado`, `tipo_nao_identificado`, `num_nao_sequencial`, `campo_01_nao_e_reg`). Defeito é **aviso, não erro**: o produto roda com dicionário imperfeito.
+
+Como o dicionário de verdade está limpo, quem exercita essa detecção é `tests/fixtures/layout_defeituoso.json` — um dicionário sintético com um defeito de cada tipo. Sem ele a detecção apodreceria sem ninguém notar.
+
+Em nome repetido o índice por nome guarda a **primeira** ocorrência; a segunda só é alcançável por `campoPorNum`. Use `registro.campoPorNum` sempre que precisar de campo por número — a numeração está sequencial hoje, mas o índice não depende disso.
 
 ## Particularidades do ambiente (custaram tempo, não redescubra)
 

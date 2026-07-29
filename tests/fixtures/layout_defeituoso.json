@@ -1,0 +1,80 @@
+{
+ "_nota": "Dicionario sintetico com um defeito de cada tipo, para provar que carregarLayout() ainda os detecta. O dicionario de verdade esta limpo desde F1-T3, entao sem esta fixture nada exercitaria avisosIntegridade.",
+ "layout": "EFD-Contribuicoes",
+ "versao_guia": "1.35",
+ "arquivo": {
+  "delimitador": "|",
+  "encoding": "ISO-8859-1",
+  "quebra_linha": "CRLF",
+  "linha_inicia_e_termina_com_delimitador": true,
+  "separador_decimal": ",",
+  "formato_data": "ddmmaaaa",
+  "formato_periodo": "mmaaaa",
+  "formato_hora": "hhmmss",
+  "sem_linhas_em_branco": true
+ },
+ "blocos": {
+  "0": "Abertura",
+  "C": "Documentos Fiscais I",
+  "F": "Demais Documentos",
+  "M": "Apuracao"
+ },
+ "ordem_blocos": ["0", "C", "F", "M"],
+ "total_registros": 4,
+ "total_campos": 8,
+ "revisao_manual": [],
+ "registros": {
+  "0000": {
+   "registro": "0000",
+   "bloco": "0",
+   "titulo": "Nome de campo repetido",
+   "nivel": 0,
+   "ocorrencia": "um (por arquivo)",
+   "pagina_guia": 1,
+   "qtd_campos": 3,
+   "campos": [
+    { "num": 1, "nome": "REG", "descricao": "", "tipo": "C", "tamanho": 4, "tamanho_fixo": true, "decimais": 0, "obrigatorio": true },
+    { "num": 2, "nome": "VL_REC", "descricao": "primeira ocorrencia", "tipo": "N", "tamanho": 0, "tamanho_fixo": false, "decimais": 2, "obrigatorio": true },
+    { "num": 3, "nome": "VL_REC", "descricao": "segunda, inacessivel pelo indice", "tipo": "N", "tamanho": 0, "tamanho_fixo": false, "decimais": 2, "obrigatorio": true }
+   ]
+  },
+  "C100": {
+   "registro": "C100",
+   "bloco": "C",
+   "titulo": "Numeracao com buraco",
+   "nivel": 3,
+   "ocorrencia": "varios",
+   "pagina_guia": 2,
+   "qtd_campos": 2,
+   "campos": [
+    { "num": 1, "nome": "REG", "descricao": "", "tipo": "C", "tamanho": 4, "tamanho_fixo": true, "decimais": 0, "obrigatorio": true },
+    { "num": 3, "nome": "COD_PART", "descricao": "o campo 2 se perdeu", "tipo": "C", "tamanho": 60, "tamanho_fixo": false, "decimais": 0, "obrigatorio": false }
+   ]
+  },
+  "F100": {
+   "registro": "F100",
+   "bloco": "F",
+   "titulo": "Tipo nao identificado",
+   "nivel": 2,
+   "ocorrencia": "varios",
+   "pagina_guia": 3,
+   "qtd_campos": 2,
+   "campos": [
+    { "num": 1, "nome": "REG", "descricao": "", "tipo": "C", "tamanho": 4, "tamanho_fixo": true, "decimais": 0, "obrigatorio": true },
+    { "num": 2, "nome": "SEM_TIPO", "descricao": "a extracao nao achou o C nem o N", "tipo": "", "tamanho": 0, "tamanho_fixo": false, "decimais": 0, "obrigatorio": false }
+   ]
+  },
+  "M100": {
+   "registro": "M100",
+   "bloco": "M",
+   "titulo": "Campo 01 nao e REG",
+   "nivel": 2,
+   "ocorrencia": "varios",
+   "pagina_guia": 4,
+   "qtd_campos": 1,
+   "campos": [
+    { "num": 1, "nome": "REGCOD_CRED", "descricao": "REG fundido com o campo seguinte", "tipo": "C", "tamanho": 4, "tamanho_fixo": true, "decimais": 0, "obrigatorio": true }
+   ]
+  }
+ }
+}
