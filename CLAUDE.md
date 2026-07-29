@@ -10,7 +10,7 @@ Especificação completa em `docs/SPEC.md` (leia-a antes de implementar qualquer
 
 ## Estado atual
 
-**Fase 1 completa.** `to-excel.ts` e `from-excel.ts` são os únicos stubs `export {}` restantes, com o contrato previsto em comentário.
+**Fase 1 completa; F2-T1 feita.** `from-excel.ts` é o único stub `export {}` restante.
 
 - [x] Dicionário de leiaute (192 registros, 1.662 campos)
 - [x] F1-T1 — scaffolding (Next 15, TS strict, Tailwind 4, shadcn/ui, Vitest)
@@ -20,7 +20,8 @@ Especificação completa em `docs/SPEC.md` (leia-a antes de implementar qualquer
 - [x] F1-T5 — serializer + round-trip byte a byte
 - [x] F1-T6 — totalizadores (round-trip byte a byte no arquivo real de 138.100 linhas)
 - [x] F1-T7 — validador (tabela 5.7 completa, CNPJ alfanumérico)
-- [ ] Fase 2 — conversão Excel
+- [x] F2-T1 — `to-excel.ts` (streaming, células como texto)
+- [ ] F2-T2 a F2-T4 — from-excel, teste de ouro, CLI
 - [ ] Fase 3 — SaaS (Supabase, auth, rotas, UI)
 
 Antes de propor trabalho novo, confira em `docs/PROMPTS-CLAUDE-CODE.md` a tarefa correspondente à etapa em que o projeto está — os critérios de aceite de cada tarefa são a definição de "pronto" deste projeto, não julgamento próprio.
@@ -76,6 +77,12 @@ Ferramentas: `python scripts/conferencia/tabela_guia.py --acha REGISTRO` acha a 
 Como o dicionário de verdade está limpo, quem exercita essa detecção é `tests/fixtures/layout_defeituoso.json` — um dicionário sintético com um defeito de cada tipo. Sem ele a detecção apodreceria sem ninguém notar.
 
 Em nome repetido o índice por nome guarda a **primeira** ocorrência; a segunda só é alcançável por `campoPorNum`. Use `registro.campoPorNum` sempre que precisar de campo por número — a numeração está sequencial hoje, mas o índice não depende disso.
+
+## Desempenho medido (F2-T1)
+
+`gerarExcel` no arquivo real de 138.100 linhas / 17 MB: **19,9 MB de XLSX em 28 s**, heap de 148 MB, 3.262.545 células — todas conferidas contra a AST, zero divergência.
+
+**A meta da spec §1.4 (50 MB em menos de 30 s) não é atendida por este caminho.** A taxa medida é ~0,6 MB/s de TXT, o que põe um arquivo de 50 MB em torno de 80 s — e isso só na geração do Excel, sem contar upload, parse e storage. Antes da Fase 3 é preciso decidir: aceitar o tempo maior, mover acima de 20 MB para Edge Function (como a spec §3.1 já prevê), ou otimizar. O gargalo provável é o `numFmt` por célula; vale medir com estilo só na coluna antes de otimizar às cegas.
 
 ## Particularidades do ambiente (custaram tempo, não redescubra)
 
