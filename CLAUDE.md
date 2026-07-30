@@ -123,6 +123,8 @@ Ele **não** está no Vitest de propósito: a suíte é pura e offline, e um tes
 
 Pendência de projeto, não de código: **Leaked Password Protection está desligada** no painel (Authentication → Policies). Ela confere a senha contra o HaveIBeenPwned.
 
+**`SUPABASE_SERVICE_ROLE_KEY` está vazia no `.env.local`.** Nada em produção depende dela hoje — as rotas de API usam `criarClienteServidor()`, que respeita a RLS —, mas `criarClienteAdmin()` lança na primeira chamada. Preencher antes do job de retenção (spec §8), que é o primeiro caso de uso previsto. Está em Project Settings → API Keys → service_role.
+
 ## Rotas de API: por que a lógica não mora em `app/api/` (F3-T3)
 
 Cada `route.ts` é um adaptador de três linhas. A lógica está em `lib/api/{upload,convert,download,files}.ts`, em funções que recebem `Dependencias` — o contrato em `lib/api/dependencias.ts` — em vez de chamarem o Supabase direto.
@@ -136,6 +138,8 @@ Arquivo de outro usuário responde **404, nunca 403**: confirmar que o id existe
 `MAX_OCORRENCIAS = 200` em `respostas.ts` corta erros e avisos na resposta e na coluna `jsonb`. Sem o corte, um arquivo de 138 mil linhas produziria dezenas de milhares de avisos, e a resposta HTTP passaria de megabytes. Quem quer a lista inteira tem a aba `_ERROS` do Excel; os totais vão em `total_erros`/`total_avisos`.
 
 `maxDuration = 300` em `/api/convert` porque os 60 s padrão da Vercel não cobrem nem o arquivo de 17 MB (35,6 s só na geração do Excel). Ver "Desempenho medido".
+
+**Verificado de ponta a ponta contra o Supabase real** (30/07/2026), o que os 44 testes não alcançam porque é justamente o que fala com o banco: upload → convert → download pela signed URL → reupload do XLSX → convert de volta devolveu os 5.421 bytes **idênticos ao original**. Exercitou RLS no insert, política de Storage por prefixo `{user_id}/`, leitura do plano em `perfis`, contagem de cota e o 429 na quarta conversão do plano gratuito.
 
 ## Particularidades do ambiente (custaram tempo, não redescubra)
 
