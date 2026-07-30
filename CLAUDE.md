@@ -125,6 +125,40 @@ Pendência de projeto, não de código: **Leaked Password Protection está desli
 
 **`SUPABASE_SERVICE_ROLE_KEY` está vazia no `.env.local`.** Nada em produção depende dela hoje — as rotas de API usam `criarClienteServidor()`, que respeita a RLS —, mas `criarClienteAdmin()` lança na primeira chamada. Preencher antes do job de retenção (spec §8), que é o primeiro caso de uso previsto. Está em Project Settings → API Keys → service_role.
 
+## Base de crédito: o que apagar um item de `C170` quebra
+
+**O caso que originou o módulo.** Em 30/07/2026 o usuário apagou 5 itens de um `C170` e 4 de um `A170` na planilha. Os totalizadores de linha foram recalculados, o arquivo saiu, e **o PVA recusou com 14 erros** — 12 deles em `M105.VL_BC_PIS_TOT` / `M505.VL_BC_COFINS_TOT`. O PVA recalcula a base de cálculo do crédito somando os documentos e compara com o declarado.
+
+**Os deltas batem exatamente**: os 5 `C170` somavam R$ 6.682,59 de `VL_BC_PIS` e o PVA cobrou exatamente 6.682,59 no NAT 02; os 4 `A170` somavam 544,31 e ele cobrou 544,31 no NAT 03. A regra é linear e mecânica.
+
+**O problema é que o `C170` não tem campo `NAT_BC_CRED`.** Só `A170`, `C501`, `D101`, `F100`, `F120` e `F130` declaram. Para o bloco C a natureza do crédito vem da classificação fiscal do item, que o CFOP sugere mas não determina — dois itens com o mesmo CFOP podem ter naturezas diferentes conforme a destinação. Uma tabela CFOP→NAT geral assumiria a premissa de um contribuinte para todos, e o erro sairia **aceito pelo PVA e errado no crédito**, que é pior que ser recusado.
+
+**A saída foi aprender a atribuição do próprio arquivo** (decisão do usuário entre quatro opções). O TXT de origem foi aceito pelo PVA, então seus `M105` são verdade: dá para descobrir qual grupo de CFOP alimenta cada NAT resolvendo o sistema, e só aceitar quando fecha **exato**. No arquivo real fecha com diferença 0,00 nos dois tributos, e o mapa que sai é fiscalmente coerente — `1102`/`2102` → 01 revenda, `1101`/`2101`/`1556` → 02 insumo, `1124`/`1125` → 03 industrialização, `2201` → 12 devolução.
+
+O mapa vai para a `_META` na ida e é usado na volta. Verificado: aplicado ao arquivo que o PVA recusou, produz **os 12 valores exatos que ele cobrou**.
+
+### Três estados, com tratamento oposto — não os confunda
+
+| Estado na `_META` | Significado | O que a volta faz |
+| --- | --- | --- |
+| chave `atribuicao_credito` **ausente** | planilha de versão antiga | compara só o total geral; se mudou, **bloqueia** |
+| presente, tributo **em** `fechou` | base fechava na origem | recalcula balde a balde |
+| presente, tributo **fora** de `fechou` | base já não fechava | **não mexe** e avisa |
+
+O terceiro caso custou um bug: sem ele eu zerava o `M105` de arquivos cuja base nunca fechou (como a fixture `efd_reduzido.txt`, que tem valores embaralhados pelo anonimizador). Por isso o mapa é gravado **sempre**, mesmo vazio — a ausência da chave tem de significar outra coisa.
+
+### O que NÃO é recalculado, de propósito
+
+Só o campo 4 (`VL_BC_*_TOT`), que é soma pura dos documentos e é o único que o PVA cobrou. O campo 7 (a parcela rateada entre `COD_CRED`), o `M100` e o crédito aproveitado **não são tocados** — o rateio é parametrização do contribuinte, não regra do leiaute. Cada recálculo emite aviso dizendo isso.
+
+Relações que medi no arquivo real e que **são** soma pura, caso alguém queira ir além: `M200`/`M600` = Σ `M210`/`M610.VL_CONT_APUR`; `M400`/`M800` = Σ `M410`/`M810.VL_REC`; `M105.VL_BC_TOT` = `CUM` + `NC`; `M100.VL_BC_PIS` = Σ `M105` campo 7 (com arredondamento até 0,26); `M100.VL_CRED` = `VL_BC` × alíquota.
+
+### Limites conhecidos
+
+- **A solução do sistema é a primeira que fecha; não provamos unicidade** — a busca exaustiva estourou 900 s. Se dois grupos de CFOP fossem trocáveis, o delta cairia no NAT errado, e o PVA acusaria **os dois** baldes, porque valida exatamente essa relação. O erro aparece na validação, não passa silencioso.
+- `FONTES` em `apuracao.ts` lista os registros que alimentam a base. Se um perfil usar outro, a soma não fecha e o aprendizado é recusado — que é o comportamento certo, e o sinal de que a tabela precisa crescer.
+- Aritmética em `bigint` (`lib/sped/numeros.ts`), nunca `number`: somar 34 mil bases em ponto flutuante acumula erro de centavos e o PVA compara com igualdade exata.
+
 ## Rotas de API: por que a lógica não mora em `app/api/` (F3-T3)
 
 Cada `route.ts` é um adaptador de três linhas. A lógica está em `lib/api/{upload,convert,download,files}.ts`, em funções que recebem `Dependencias` — o contrato em `lib/api/dependencias.ts` — em vez de chamarem o Supabase direto.
@@ -173,6 +207,8 @@ lib/
 │   ├── to-excel.ts       # AST      → XLSX (streaming, uma aba por registro)
 │   ├── from-excel.ts     # XLSX     → AST (mapeamento de coluna POR NOME, não posição)
 │   ├── totalizers.ts     # AST      → AST com 9900/9990/9999/X990 recalculados
+│   ├── apuracao.ts       # AST      → AST com M105/M505 recalculados (ver seção acima)
+│   ├── numeros.ts        # decimal exato em bigint — nunca `number` em valor fiscal
 │   └── serializer.ts     # AST      → TXT (Latin-1, CRLF, sem linha em branco)
 ├── api/            # lógica das rotas, testável sem banco — ver F3-T3 abaixo
 │   ├── dependencias.ts           # contrato injetado nos handlers
@@ -189,7 +225,7 @@ supabase/migrations/  # tabelas perfis, arquivos, conversoes — todas com RLS p
 
 **Pipeline TXT → XLSX** (spec §3.3): upload valida extensão/tamanho/`|0000|` inicial → `parser.ts` monta a AST resolvendo hierarquia por pilha de níveis → `validator.ts` anota erros/avisos sem bloquear → `to-excel.ts` gera o XLSX (streaming `WorkbookWriter`, células de dados sempre `numFmt: '@'` para não corromper zeros à esquerda, colunas `_{REG}_{CAMPO}` com o contexto do pai) → grava em `outputs/{user_id}/`.
 
-**Pipeline XLSX → TXT** (spec §3.4): `from-excel.ts` lê a aba `_META` (contrato de reconversão — se `layout`/`versao_guia` divergir, recusa) → reconstrói AST por `_ordem`/`_id`/`_pai` → `validator.ts` aqui **bloqueia** em erro → `totalizers.ts` recalcula `X990`/`9900`/`9990`/`9999` → `serializer.ts` gera o TXT final.
+**Pipeline XLSX → TXT** (spec §3.4): `from-excel.ts` lê a aba `_META` (contrato de reconversão — se `layout`/`versao_guia` divergir, recusa) → reconstrói AST por `_ordem`/`_id`/`_pai` → `apuracao.ts` recalcula a base de crédito dos `M105`/`M505` a partir dos documentos → `validator.ts` aqui **bloqueia** em erro → `totalizers.ts` recalcula `X990`/`9900`/`9990`/`9999` → `serializer.ts` gera o TXT final.
 
 Note a assimetria: erros **não bloqueiam** TXT→XLSX (o usuário quer ver e corrigir na planilha) mas **bloqueiam** XLSX→TXT (gerar um arquivo que o PVA rejeita é pior que não gerar) — decisão registrada na spec §11.
 
@@ -206,9 +242,10 @@ Errar qualquer uma destas gera arquivo rejeitado pelo PVA:
 5. **Separador decimal é vírgula**, sem separador de milhar.
 6. Datas em `ddmmaaaa`, períodos em `mmaaaa`, horas em `hhmmss`.
 7. **Zeros à esquerda são significativos** (CNPJ, CPF, códigos). Nunca normalizar números.
-8. Os totalizadores `9900`, `9990`, `9999` e `X990` **sempre são recalculados** ao gerar o TXT — `9900` conta a si mesmo entre os tipos de registro, `9990` conta todas as linhas do bloco 9 incluindo ela mesma e a `9999`. A **ordem** em que o `9900` cita os registros não vem da spec: é convenção de quem gerou o arquivo (o real ordena por código dentro do bloco e deixa a entrada do próprio `9900` por último, depois da `9990` e da `9999`). `totalizers.ts` preserva a ordem que o arquivo declarou — sem isso o round-trip byte a byte é impossível em arquivo de terceiro.
-9. A ordem dos blocos é fixa: `0 → A → C → D → F → I → M → P → 1 → 9`.
-10. Registro filho exige registro pai imediatamente acima na sequência.
+8. Apagar item de documento (`C170`, `A170`…) invalida a base de cálculo do crédito nos `M105`/`M505`. O PVA confere essa soma e **recusa** o arquivo — recalcular só os totalizadores de linha não basta. Ver "Base de crédito" acima.
+9. Os totalizadores `9900`, `9990`, `9999` e `X990` **sempre são recalculados** ao gerar o TXT — `9900` conta a si mesmo entre os tipos de registro, `9990` conta todas as linhas do bloco 9 incluindo ela mesma e a `9999`. A **ordem** em que o `9900` cita os registros não vem da spec: é convenção de quem gerou o arquivo (o real ordena por código dentro do bloco e deixa a entrada do próprio `9900` por último, depois da `9990` e da `9999`). `totalizers.ts` preserva a ordem que o arquivo declarou — sem isso o round-trip byte a byte é impossível em arquivo de terceiro.
+10. A ordem dos blocos é fixa: `0 → A → C → D → F → I → M → P → 1 → 9`.
+11. Registro filho exige registro pai imediatamente acima na sequência.
 
 ## Convenções de código
 

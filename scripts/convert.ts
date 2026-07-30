@@ -9,6 +9,7 @@
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { basename, extname, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
+import { recalcularBasesDeCredito } from '../lib/sped/apuracao';
 import { lerExcel } from '../lib/sped/from-excel';
 import { carregarLayout } from '../lib/sped/layout';
 import { parseTxt } from '../lib/sped/parser';
@@ -183,14 +184,21 @@ async function main(): Promise<void> {
 
   const resultado = paraExcel ? parseTxt(bytes, layout) : await lerExcel(bytes, layout);
 
+  // Na volta, a base de calculo do credito e recalculada a partir dos
+  // documentos: apagar um item de C170 sem ajustar o M105/M505 produz arquivo
+  // que o PVA recusa (ver lib/sped/apuracao.ts).
+  const apuracao = paraExcel
+    ? { erros: [] as ErroValidacao[], avisos: [] as ErroValidacao[] }
+    : recalcularBasesDeCredito(resultado.nos, resultado.atribuicao ?? null);
+
   // Erro NAO bloqueia TXT -> XLSX: o usuario quer ver e corrigir na planilha.
   // Erro BLOQUEIA XLSX -> TXT: gerar arquivo que o PVA recusa e pior que nao
   // gerar (spec 11, decisoes 6 e 7).
   const validacao = opcoes.validar
     ? validar(resultado.nos, layout)
     : { erros: [], avisos: [] };
-  const erros = [...resultado.erros, ...validacao.erros];
-  const avisos = [...resultado.avisos, ...validacao.avisos];
+  const erros = [...resultado.erros, ...apuracao.erros, ...validacao.erros];
+  const avisos = [...resultado.avisos, ...apuracao.avisos, ...validacao.avisos];
 
   console.log(`\nlinhas: ${resultado.nos.length.toLocaleString('pt-BR')}`);
   console.log(`tipos de registro: ${new Set(resultado.nos.map((n) => n.reg)).size}`);

@@ -5,7 +5,8 @@
 // numero com ponto, e o TXT reconvertido e recusado pelo PVA.
 import { PassThrough } from 'node:stream';
 import ExcelJS from 'exceljs';
-import type { CampoLayout, Layout, NoRegistro, ResultadoParse } from './types';
+import { aprenderAtribuicao } from './apuracao';
+import type { CampoLayout, Layout, MapaAtribuicao, NoRegistro, ResultadoParse } from './types';
 
 export interface OpcoesExcel {
   /** Linha 2 com a descricao resumida de cada campo. */
@@ -14,6 +15,11 @@ export interface OpcoesExcel {
   arquivoOrigem?: string;
   /** SHA-256 do arquivo de origem, para detectar Excel de outro arquivo. */
   hashOrigem?: string;
+  /**
+   * Mapa CFOP -> natureza do credito. Quando omitido, e aprendido do proprio
+   * arquivo; passe `null` para nao gravar nenhum.
+   */
+  atribuicao?: MapaAtribuicao | null;
 }
 
 const AZUL_CABECALHO = 'FF1F4E79';
@@ -215,11 +221,19 @@ export async function gerarExcel(
     indiceNoTipo.set(no.id, n);
   }
 
-  escreveMeta(wb, res, opcoes);
+  // A atribuicao so pode ser aprendida aqui, com o arquivo ainda consistente:
+  // depois da edicao os documentos ja nao fecham com os M105, que e
+  // justamente o problema que ela resolve.
+  const aprendizado =
+    opcoes.atribuicao === undefined
+      ? aprenderAtribuicao(res.nos)
+      : { mapa: opcoes.atribuicao, avisos: [] };
+
+  escreveMeta(wb, res, { ...opcoes, atribuicao: aprendizado.mapa });
   for (const [reg, nos] of agruparPorRegistro(res.nos, layout)) {
     escreveRegistro(wb, reg, nos, layout, opcoes, porId, indiceNoTipo);
   }
-  escreveErros(wb, res);
+  escreveErros(wb, { ...res, avisos: [...res.avisos, ...aprendizado.avisos] });
 
   await wb.commit();
   await terminou;
@@ -255,6 +269,14 @@ function escreveMeta(
     ['total_linhas', String(res.nos.length)],
     ['gerado_em', new Date().toISOString()],
     ['hash_origem', opcoes.hashOrigem ?? ''],
+    // Mapa CFOP -> natureza do credito, aprendido do TXT de origem. E o que
+    // permite a volta recalcular M105/M505 quando o usuario apaga um item de
+    // documento. Sem ele a reconversao bloqueia esse tipo de edicao, em vez de
+    // gerar arquivo que o PVA recusa. Ver lib/sped/apuracao.ts.
+    // Gravado SEMPRE, mesmo vazio: a ausencia da chave e o que identifica
+    // planilha de versao antiga, e o tratamento e diferente do de um arquivo
+    // que simplesmente nao fechou (`fechou` vazio).
+    ['atribuicao_credito', JSON.stringify(opcoes.atribuicao ?? { pis: {}, cofins: {}, fechou: [] })],
   ];
 
   for (const [chave, valor] of linhas) {

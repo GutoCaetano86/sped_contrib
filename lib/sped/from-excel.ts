@@ -5,7 +5,14 @@
 // reembaralhar os campos do TXT.
 import ExcelJS from 'exceljs';
 import { nivelDe } from './parser';
-import type { CampoLayout, ErroValidacao, Layout, NoRegistro, ResultadoParse } from './types';
+import type {
+  CampoLayout,
+  ErroValidacao,
+  Layout,
+  MapaAtribuicao,
+  NoRegistro,
+  ResultadoParse,
+} from './types';
 
 /** Colunas de controle escritas por to-excel.ts. */
 const COL_ID = '_id';
@@ -415,7 +422,50 @@ export async function lerExcel(buf: Buffer, layout: Layout): Promise<ResultadoPa
     }
   }
 
-  return { nos, cabecalho: extraiCabecalho(nos, meta), erros, avisos };
+  return {
+    nos,
+    cabecalho: extraiCabecalho(nos, meta),
+    erros,
+    avisos,
+    atribuicao: lerAtribuicao(meta, avisos),
+  };
+}
+
+/**
+ * Mapa CFOP -> natureza do credito, gravado pela ida na _META.
+ *
+ * Ausente em planilha gerada antes desta funcionalidade. Nao e erro aqui: so
+ * bloqueia se o usuario tiver mexido na base de calculo, e quem decide isso e
+ * `recalcularBasesDeCredito`.
+ */
+function lerAtribuicao(
+  meta: Map<string, string>,
+  avisos: ErroValidacao[],
+): MapaAtribuicao | null {
+  const bruto = meta.get('atribuicao_credito');
+  if (!bruto) return null;
+  try {
+    const lido: unknown = JSON.parse(bruto);
+    if (
+      typeof lido !== 'object' ||
+      lido === null ||
+      typeof (lido as MapaAtribuicao).pis !== 'object' ||
+      typeof (lido as MapaAtribuicao).cofins !== 'object' ||
+      !Array.isArray((lido as MapaAtribuicao).fechou)
+    ) {
+      throw new Error('formato inesperado');
+    }
+    return lido as MapaAtribuicao;
+  } catch {
+    avisos.push({
+      severidade: 'aviso',
+      aba: '_META',
+      campo: 'atribuicao_credito',
+      mensagem:
+        'Mapa de natureza do crédito ilegível; a base de cálculo não será recalculada.',
+    });
+    return null;
+  }
 }
 
 /** Cabecalho do 0000; cai na _META se o 0000 nao vier. */

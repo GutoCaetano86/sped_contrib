@@ -5,6 +5,7 @@
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { CONVERSOES_POR_HORA, conferirCota, limitesDe } from '@/lib/plans';
+import { recalcularBasesDeCredito } from '@/lib/sped/apuracao';
 import { lerExcel } from '@/lib/sped/from-excel';
 import { obterLayout } from '@/lib/sped/layout';
 import { parseTxt } from '@/lib/sped/parser';
@@ -124,9 +125,18 @@ export async function postConvert(request: Request, deps: Dependencias): Promise
 
     const res =
       direcao === 'txt_para_xlsx' ? parseTxt(entrada, layout) : await lerExcel(entrada, layout);
+
+    // Na volta, a base de calculo do credito e recalculada a partir dos
+    // documentos ANTES de validar: apagar um item de C170 sem ajustar o
+    // M105/M505 produz arquivo que o PVA recusa (ver lib/sped/apuracao.ts).
+    const apuracao =
+      direcao === 'xlsx_para_txt'
+        ? recalcularBasesDeCredito(res.nos, res.atribuicao ?? null)
+        : { erros: [] as ErroValidacao[], avisos: [] as ErroValidacao[] };
+
     const validacao = validar(res.nos, layout);
-    const erros: ErroValidacao[] = [...res.erros, ...validacao.erros];
-    const avisos: ErroValidacao[] = [...res.avisos, ...validacao.avisos];
+    const erros: ErroValidacao[] = [...res.erros, ...apuracao.erros, ...validacao.erros];
+    const avisos: ErroValidacao[] = [...res.avisos, ...apuracao.avisos, ...validacao.avisos];
 
     // Assimetria da spec 11: erro NAO bloqueia TXT -> XLSX (o usuario quer ver
     // e corrigir na planilha) mas BLOQUEIA XLSX -> TXT, porque gerar arquivo

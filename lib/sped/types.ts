@@ -48,11 +48,34 @@ export interface NoRegistro {
   linhaOriginal: number;
 }
 
+/**
+ * Qual natureza de credito cada grupo de CFOP alimenta.
+ *
+ * Aprendido do TXT de origem, que o PVA aceitou, e gravado na aba _META para
+ * a volta poder recalcular a base sem inventar regra fiscal. Chave:
+ * `"aliquota|cfop"`. Ver lib/sped/apuracao.ts.
+ */
+export interface MapaAtribuicao {
+  pis: Record<string, string>;
+  cofins: Record<string, string>;
+  /**
+   * Tributos cuja base fechou com os documentos quando o Excel foi gerado.
+   *
+   * Só estes são recalculados na volta. A distinção importa: mapa AUSENTE é
+   * planilha gerada por versão antiga, e aí não se sabe nada; mapa presente
+   * com o tributo fora de `fechou` significa que o arquivo de origem já não
+   * fechava, e recalcular ali zeraria bases legítimas.
+   */
+  fechou: ('pis' | 'cofins')[];
+}
+
 export interface ResultadoParse {
   nos: NoRegistro[];
   cabecalho: { cnpj: string; razaoSocial: string; dtIni: string; dtFin: string };
   erros: ErroValidacao[];
   avisos: ErroValidacao[];
+  /** Só vem preenchido na leitura de um XLSX que trouxe o mapa na _META. */
+  atribuicao?: MapaAtribuicao | null;
 }
 
 export interface ErroValidacao {

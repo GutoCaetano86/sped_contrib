@@ -9,6 +9,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
+import { recalcularBasesDeCredito } from '@/lib/sped/apuracao';
 import { lerExcel } from '@/lib/sped/from-excel';
 import { carregarLayout } from '@/lib/sped/layout';
 import { parseTxt } from '@/lib/sped/parser';
@@ -24,30 +25,39 @@ beforeAll(() => {
 
 const caminho = (nome: string) => join(process.cwd(), 'tests', 'fixtures', nome);
 
-/** O ciclo inteiro, exatamente como a spec 9.2 escreve. */
+/**
+ * O ciclo inteiro, exatamente como a spec 9.2 escreve, mais o recalculo da
+ * base de credito, que entrou no pipeline depois (ver lib/sped/apuracao.ts).
+ * Sem edicao ele nao pode alterar um byte — e este teste e quem trava isso.
+ */
 async function idaEVolta(original: Buffer) {
   const ast = parseTxt(original, layout);
   const xlsx = await gerarExcel(ast, layout);
   const volta = await lerExcel(xlsx, layout);
-  const saida = serializarTxt(recalcularTotalizadores(volta.nos));
-  return { ast, volta, saida };
+  const apuracao = recalcularBasesDeCredito(volta.nos, volta.atribuicao ?? null);
+  const saida = serializarTxt(recalcularTotalizadores(apuracao.nos));
+  return { ast, volta, saida, apuracao };
 }
 
 describe('teste de ouro — round-trip completo', () => {
   it('efd_minimo.txt volta byte a byte', async () => {
     const original = readFileSync(caminho('efd_minimo.txt'));
-    const { ast, volta, saida } = await idaEVolta(original);
+    const { ast, volta, saida, apuracao } = await idaEVolta(original);
 
     expect(volta.erros).toEqual([]);
+    expect(apuracao.erros).toEqual([]);
     expect(volta.nos).toHaveLength(ast.nos.length);
     expect(saida.equals(original)).toBe(true);
   });
 
   it('efd_reduzido.txt, arquivo real com os 74 tipos de registro, volta byte a byte', async () => {
     const original = readFileSync(caminho('efd_reduzido.txt'));
-    const { ast, volta, saida } = await idaEVolta(original);
+    const { ast, volta, saida, apuracao } = await idaEVolta(original);
 
     expect(volta.erros).toEqual([]);
+    // A apuracao pode avisar que a base nao fechava (a fixture tem valores
+    // embaralhados pelo anonimizador), mas nunca pode ERRAR nem alterar bytes.
+    expect(apuracao.erros).toEqual([]);
     expect(volta.nos).toHaveLength(ast.nos.length);
     expect(saida).toHaveLength(original.length);
     expect(saida.equals(original)).toBe(true);
