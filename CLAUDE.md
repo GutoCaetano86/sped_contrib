@@ -10,7 +10,7 @@ Especificação completa em `docs/SPEC.md` (leia-a antes de implementar qualquer
 
 ## Estado atual
 
-**Fase 1 completa; F2-T1 feita.** `from-excel.ts` é o único stub `export {}` restante.
+**Fases 1 e 2 completas.** Nenhum stub restante em `lib/sped/`. A Fase 3 tem F3-T1 e F3-T2 prontas.
 
 - [x] Dicionário de leiaute (192 registros, 1.662 campos)
 - [x] F1-T1 — scaffolding (Next 15, TS strict, Tailwind 4, shadcn/ui, Vitest)
@@ -21,7 +21,9 @@ Especificação completa em `docs/SPEC.md` (leia-a antes de implementar qualquer
 - [x] F1-T6 — totalizadores (round-trip byte a byte no arquivo real de 138.100 linhas)
 - [x] F1-T7 — validador (tabela 5.7 completa, CNPJ alfanumérico)
 - [x] F2-T1 — `to-excel.ts` (streaming, células como texto)
-- [ ] F2-T2 a F2-T4 — from-excel, teste de ouro, CLI
+- [x] F2-T2 — `from-excel.ts` (mapeamento por nome, 6 casos de borda)
+- [x] F2-T3 — **teste de ouro**: round-trip completo byte a byte em 138.100 linhas
+- [x] F2-T4 — CLI `npm run convert`
 - [x] F3-T1 — banco, RLS, buckets, trigger de perfil, `plans.ts`
 - [x] F3-T2 — auth: e-mail/senha e Google, verificados por evidência de servidor
 - [ ] F3-T3 a F3-T7 — rotas de API, UI, landing, deploy
@@ -37,7 +39,7 @@ npm run test:watch
 npm run typecheck        # tsc --noEmit
 npm run lint             # eslint
 npm run build
-npm run convert -- <arquivo>   # CLI interna de conversão (stub até F2-T4)
+npm run convert -- entrada.txt --saida saida.xlsx   # e o inverso; --ajuda lista as opções
 ```
 
 Regenerar o dicionário de leiaute (só necessário quando a Receita publicar nova versão do Guia Prático):
@@ -79,6 +81,14 @@ Ferramentas: `python scripts/conferencia/tabela_guia.py --acha REGISTRO` acha a 
 Como o dicionário de verdade está limpo, quem exercita essa detecção é `tests/fixtures/layout_defeituoso.json` — um dicionário sintético com um defeito de cada tipo. Sem ele a detecção apodreceria sem ninguém notar.
 
 Em nome repetido o índice por nome guarda a **primeira** ocorrência; a segunda só é alcançável por `campoPorNum`. Use `registro.campoPorNum` sempre que precisar de campo por número — a numeração está sequencial hoje, mas o índice não depende disso.
+
+## O teste de ouro é o que segura a Fase 2
+
+`tests/sped/ouro.test.ts` roda o ciclo inteiro — `parseTxt → gerarExcel → lerExcel → recalcularTotalizadores → serializarTxt` — e exige o arquivo original **byte a byte**. É o único teste que exercita os cinco módulos juntos, e a spec §9.2 o chama de mais importante do projeto. Ele passa nas 138.100 linhas do arquivo real (o caso grande se pula sozinho quando o arquivo de 17 MB não está na máquina).
+
+Se ele quebrar depois de uma mudança, o defeito está em totalizadores, ordenação ou encoding — nessa ordem de probabilidade.
+
+Dois caminhos de corrupção que o `from-excel.ts` trata e que valem conhecer, porque o Excel os cria silenciosamente: número onde havia texto com zero à esquerda (vira aviso quando o campo é `tamanho_fixo`), e **data digitada volta como número de série do Excel** — 44197 em vez de `01012021`. O segundo não tem como ser detectado sem saber que o campo é data, e por isso o `from-excel` usa a mesma convenção do validador (prefixo `DT_` com 8 posições).
 
 ## Desempenho medido (F2-T1)
 

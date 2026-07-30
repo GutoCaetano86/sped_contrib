@@ -21,7 +21,7 @@ const CABECALHO_VAZIO = { cnpj: '', razaoSocial: '', dtIni: '', dtFin: '' };
  * do registro anterior — trata como irmao, que e o palpite menos destrutivo
  * para a pilha.
  */
-function nivelDe(reg: string, layout: Layout, nivelAnterior: number): number {
+export function nivelDe(reg: string, layout: Layout, nivelAnterior: number): number {
   const doDicionario = layout.registro(reg)?.nivel;
   if (typeof doDicionario === 'number') return doDicionario;
   if (reg === '0000' || reg === '9999') return 0;
