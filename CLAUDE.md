@@ -26,7 +26,10 @@ Especificação completa em `docs/SPEC.md` (leia-a antes de implementar qualquer
 - [x] F2-T4 — CLI `npm run convert`
 - [x] F3-T1 — banco, RLS, buckets, trigger de perfil, `plans.ts`
 - [x] F3-T2 — auth: e-mail/senha e Google, verificados por evidência de servidor
-- [ ] F3-T3 a F3-T7 — rotas de API, UI, landing, deploy
+- [x] F3-T3 — rotas de API (`upload`, `convert`, `download/[id]`, `files`), 44 testes
+- [ ] F3-T4 a F3-T7 — UI, landing, deploy
+
+**O PVA aceitou o arquivo reconvertido** (30/07/2026): "A importação foi concluída com êxito. A escrituração não possui erros de estrutura." O teste foi feito com edição de verdade — 5 dos 10 itens de um `C170` excluídos —, então exercitou o recálculo de `9900`/`C990`/`9990`/`9999` fora do caso de round-trip idêntico. É o critério de aceite da spec §9.4, o único que os testes daqui não substituem.
 
 Antes de propor trabalho novo, confira em `docs/PROMPTS-CLAUDE-CODE.md` a tarefa correspondente à etapa em que o projeto está — os critérios de aceite de cada tarefa são a definição de "pronto" deste projeto, não julgamento próprio.
 
@@ -120,6 +123,20 @@ Ele **não** está no Vitest de propósito: a suíte é pura e offline, e um tes
 
 Pendência de projeto, não de código: **Leaked Password Protection está desligada** no painel (Authentication → Policies). Ela confere a senha contra o HaveIBeenPwned.
 
+## Rotas de API: por que a lógica não mora em `app/api/` (F3-T3)
+
+Cada `route.ts` é um adaptador de três linhas. A lógica está em `lib/api/{upload,convert,download,files}.ts`, em funções que recebem `Dependencias` — o contrato em `lib/api/dependencias.ts` — em vez de chamarem o Supabase direto.
+
+O motivo é o critério de aceite: teste de integração de caminho feliz, cota esgotada, arquivo grande demais e acesso a arquivo alheio. Com a lógica dentro da rota, isso exigiria banco e dois usuários reais; com a injeção, roda no Vitest, que é puro e offline, exercitando `Request` e `Response` de verdade e o pipeline `lib/sped/` sem mock nenhum.
+
+**O fake de teste não filtra por usuário, de propósito.** Em produção a RLS filtra; se o fake também filtrasse, o teste de acesso alheio estaria testando o fake. Como está, ele só passa porque o handler compara `arquivo.user_id` explicitamente — segunda camada além da RLS. Por isso `obterArquivo(id)` do contrato não recebe `userId`.
+
+Arquivo de outro usuário responde **404, nunca 403**: confirmar que o id existe já é informação sobre a conta alheia, e em dado fiscal isso é vazamento.
+
+`MAX_OCORRENCIAS = 200` em `respostas.ts` corta erros e avisos na resposta e na coluna `jsonb`. Sem o corte, um arquivo de 138 mil linhas produziria dezenas de milhares de avisos, e a resposta HTTP passaria de megabytes. Quem quer a lista inteira tem a aba `_ERROS` do Excel; os totais vão em `total_erros`/`total_avisos`.
+
+`maxDuration = 300` em `/api/convert` porque os 60 s padrão da Vercel não cobrem nem o arquivo de 17 MB (35,6 s só na geração do Excel). Ver "Desempenho medido".
+
 ## Particularidades do ambiente (custaram tempo, não redescubra)
 
 - O **TypeScript é 6.x**, mais novo que o assumido pelo `create-next-app`. Duas consequências já tratadas: `baseUrl` está deprecado (usamos só `paths`), e imports de efeito colateral de `.css` exigem declaração — daí `types/estilos.d.ts`, já que o Next só declara `*.module.css`.
@@ -129,6 +146,7 @@ Pendência de projeto, não de código: **Leaked Password Protection está desli
 - `npm audit` acusa vulnerabilidades altas em `postcss` e `sharp`, ambas transitivas dentro do próprio `next`. O `fix` sugerido regride o Next para a 9.3.3 — **não rodar `npm audit fix --force`**.
 - O Vitest **falha de forma intermitente** nesta máquina ao criar processos de worker: `Error: spawn UNKNOWN` com `errno -4094`. Aparece como `no tests` ou como falhas aparentemente aleatórias que não se repetem. Antes de investigar uma falha de teste, **rode de novo** — se a segunda rodada passa limpa, era isso. Se incomodar, `npx vitest run --pool=threads` costuma contornar.
 - O `@supabase/supabase-js` avisa que Node 20 está depreciado e pedirá Node 22+ em versões futuras. Ainda funciona, mas é um upgrade a agendar.
+- `npm run build` falha com `EPERM ... .next\trace` quando o dev server está rodando — ele segura o diretório. Pare o dev server antes de buildar.
 
 ## Stack
 
@@ -152,6 +170,11 @@ lib/
 │   ├── from-excel.ts     # XLSX     → AST (mapeamento de coluna POR NOME, não posição)
 │   ├── totalizers.ts     # AST      → AST com 9900/9990/9999/X990 recalculados
 │   └── serializer.ts     # AST      → TXT (Latin-1, CRLF, sem linha em branco)
+├── api/            # lógica das rotas, testável sem banco — ver F3-T3 abaixo
+│   ├── dependencias.ts           # contrato injetado nos handlers
+│   ├── dependencias-supabase.ts  # única implementação que fala com Supabase
+│   ├── respostas.ts              # { erro, detalhes? } e corte de ocorrências
+│   └── {upload,convert,download,files}.ts
 ├── supabase/{client,server,admin}.ts
 └── plans.ts        # limites por plano (free/pro/escritorio), ver spec 4.1
 data/layout_efd_contribuicoes.json
