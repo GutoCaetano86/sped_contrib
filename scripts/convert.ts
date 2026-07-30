@@ -6,8 +6,8 @@
 //
 // A direcao vem da extensao da ENTRADA. Serve para rodar o pipeline sem
 // subir a aplicacao, que e o criterio de saida da Fase 1 (spec 10).
-import { readFileSync, writeFileSync } from 'node:fs';
-import { basename, extname } from 'node:path';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { basename, extname, resolve } from 'node:path';
 import { createHash } from 'node:crypto';
 import { lerExcel } from '../lib/sped/from-excel';
 import { carregarLayout } from '../lib/sped/layout';
@@ -22,12 +22,26 @@ const USO = `
 Uso:
   npm run convert -- <entrada.txt|entrada.xlsx> [--saida <arquivo>] [opcoes]
 
+Saida padrao:
+  entrada.txt   ->  entrada.xlsx
+  entrada.xlsx  ->  entrada_ajustado.txt     (nao sobrescreve o TXT original)
+
 Opcoes:
-  --saida <arquivo>    caminho de saida; por padrao troca a extensao da entrada
+  --saida <arquivo>    caminho de saida
+  --forcar             sobrescreve a saida se ela ja existir
   --descricoes         inclui a linha de descricao dos campos no Excel
   --sem-validar        pula a validacao (mais rapido em arquivo grande)
   --quieto             so o resumo, sem a lista de ocorrencias
 `.trim();
+
+/**
+ * Sufixo do TXT reconvertido.
+ *
+ * Sem ele, converter arquivo.txt -> arquivo.xlsx e voltar sobrescreveria o
+ * arquivo.txt original. Em arquivo fiscal isso e perda de dado: o original
+ * e a unica referencia do que foi entregue a Receita.
+ */
+const SUFIXO_RECONVERTIDO = '_ajustado';
 
 interface Opcoes {
   entrada: string;
@@ -35,6 +49,7 @@ interface Opcoes {
   descricoes: boolean;
   validar: boolean;
   quieto: boolean;
+  forcar: boolean;
 }
 
 function lerArgumentos(argv: string[]): Opcoes | null {
@@ -43,6 +58,7 @@ function lerArgumentos(argv: string[]): Opcoes | null {
   let descricoes = false;
   let validarFlag = true;
   let quieto = false;
+  let forcar = false;
 
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i] ?? '';
@@ -54,6 +70,8 @@ function lerArgumentos(argv: string[]): Opcoes | null {
       validarFlag = false;
     } else if (arg === '--quieto' || arg === '-q') {
       quieto = true;
+    } else if (arg === '--forcar' || arg === '-f') {
+      forcar = true;
     } else if (arg === '--ajuda' || arg === '-h') {
       return null;
     } else if (arg.startsWith('-')) {
@@ -73,12 +91,20 @@ function lerArgumentos(argv: string[]): Opcoes | null {
     return null;
   }
 
+  // TXT -> XLSX troca so a extensao. XLSX -> TXT acrescenta o sufixo, senao
+  // a volta sobrescreveria o TXT de entrada original.
+  const padrao =
+    ext === '.txt'
+      ? entrada.replace(/\.txt$/i, '.xlsx')
+      : entrada.replace(/\.xlsx$/i, `${SUFIXO_RECONVERTIDO}.txt`);
+
   return {
     entrada,
-    saida: saida || entrada.replace(/\.(txt|xlsx)$/i, ext === '.txt' ? '.xlsx' : '.txt'),
+    saida: saida || padrao,
     descricoes,
     validar: validarFlag,
     quieto,
+    forcar,
   };
 }
 
@@ -123,6 +149,26 @@ async function main(): Promise<void> {
   const opcoes = lerArgumentos(process.argv.slice(2));
   if (!opcoes) {
     console.log(USO);
+    process.exitCode = 1;
+    return;
+  }
+
+  // Nunca sobrescrever sem o usuario pedir. O original de uma EFD e a unica
+  // referencia do que foi entregue a Receita; perder por descuido de CLI e
+  // inaceitavel.
+  if (resolve(opcoes.entrada) === resolve(opcoes.saida)) {
+    console.error(
+      `A saída é o próprio arquivo de entrada (${basename(opcoes.entrada)}).\n` +
+        `Escolha outro caminho com --saida.`,
+    );
+    process.exitCode = 1;
+    return;
+  }
+  if (existsSync(opcoes.saida) && !opcoes.forcar) {
+    console.error(
+      `A saída já existe: ${opcoes.saida}\n` +
+        `Escolha outro caminho com --saida, ou passe --forcar para sobrescrever.`,
+    );
     process.exitCode = 1;
     return;
   }
