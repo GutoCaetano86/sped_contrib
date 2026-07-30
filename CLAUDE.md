@@ -22,8 +22,8 @@ Especificação completa em `docs/SPEC.md` (leia-a antes de implementar qualquer
 - [x] F1-T7 — validador (tabela 5.7 completa, CNPJ alfanumérico)
 - [x] F2-T1 — `to-excel.ts` (streaming, células como texto)
 - [ ] F2-T2 a F2-T4 — from-excel, teste de ouro, CLI
-- [ ] F3-T1 — banco, RLS, buckets, plans.ts (NAO feita: `supabase/migrations` vazia)
-- [~] F3-T2 — auth: código pronto, fluxo não verificado ponta a ponta
+- [x] F3-T1 — banco, RLS, buckets, trigger de perfil, `plans.ts`
+- [x] F3-T2 — auth: e-mail/senha e Google, verificados por evidência de servidor
 - [ ] F3-T3 a F3-T7 — rotas de API, UI, landing, deploy
 
 Antes de propor trabalho novo, confira em `docs/PROMPTS-CLAUDE-CODE.md` a tarefa correspondente à etapa em que o projeto está — os critérios de aceite de cada tarefa são a definição de "pronto" deste projeto, não julgamento próprio.
@@ -85,6 +85,18 @@ Em nome repetido o índice por nome guarda a **primeira** ocorrência; a segunda
 `gerarExcel` no arquivo real de 138.100 linhas / 17 MB: **19,9 MB de XLSX em 28 s**, heap de 148 MB, 3.262.545 células — todas conferidas contra a AST, zero divergência.
 
 **A meta da spec §1.4 (50 MB em menos de 30 s) não é atendida por este caminho.** A taxa medida é ~0,6 MB/s de TXT, o que põe um arquivo de 50 MB em torno de 80 s — e isso só na geração do Excel, sem contar upload, parse e storage. Antes da Fase 3 é preciso decidir: aceitar o tempo maior, mover acima de 20 MB para Edge Function (como a spec §3.1 já prevê), ou otimizar. O gargalo provável é o `numFmt` por célula; vale medir com estilo só na coluna antes de otimizar às cegas.
+
+## Banco e segurança (F3-T1)
+
+Três migrations em `supabase/migrations/`, aplicadas no projeto `xqhebqvnjwspmvrhmqsz`: tabelas `perfis`/`arquivos`/`conversoes` com índices, RLS por `user_id` nas três, trigger `ao_criar_usuario` criando o perfil, e os buckets privados `uploads`/`outputs` com política por prefixo `{user_id}/`.
+
+**A RLS é a única camada de isolamento** — não há verificação equivalente na aplicação. O critério de aceite é reprodutível: `supabase/verifica_rls.sql` lança exceção na primeira falha e cobre leitura, escrita (update, delete, insert em nome de outro) e acesso anônimo. Rode-o depois de qualquer mexida em política ou tabela.
+
+Ele **não** está no Vitest de propósito: a suíte é pura e offline, e um teste de RLS exige banco e dois usuários reais.
+
+**Rode `get_advisors` do Supabase depois de mudar schema.** Ele pegou um defeito que eu introduzi: a função do trigger é `SECURITY DEFINER` no schema `public`, que o Supabase expõe via REST, então `anon` podia chamá-la por `/rest/v1/rpc/`. A correção é `revoke execute`, já na migration.
+
+Pendência de projeto, não de código: **Leaked Password Protection está desligada** no painel (Authentication → Policies). Ela confere a senha contra o HaveIBeenPwned.
 
 ## Particularidades do ambiente (custaram tempo, não redescubra)
 
