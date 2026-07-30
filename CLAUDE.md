@@ -22,7 +22,9 @@ Especificação completa em `docs/SPEC.md` (leia-a antes de implementar qualquer
 - [x] F1-T7 — validador (tabela 5.7 completa, CNPJ alfanumérico)
 - [x] F2-T1 — `to-excel.ts` (streaming, células como texto)
 - [ ] F2-T2 a F2-T4 — from-excel, teste de ouro, CLI
-- [ ] Fase 3 — SaaS (Supabase, auth, rotas, UI)
+- [ ] F3-T1 — banco, RLS, buckets, plans.ts (NAO feita: `supabase/migrations` vazia)
+- [~] F3-T2 — auth: código pronto, fluxo não verificado ponta a ponta
+- [ ] F3-T3 a F3-T7 — rotas de API, UI, landing, deploy
 
 Antes de propor trabalho novo, confira em `docs/PROMPTS-CLAUDE-CODE.md` a tarefa correspondente à etapa em que o projeto está — os critérios de aceite de cada tarefa são a definição de "pronto" deste projeto, não julgamento próprio.
 
@@ -91,6 +93,8 @@ Em nome repetido o índice por nome guarda a **primeira** ocorrência; a segunda
 - `eslint-config-next` fica **pinado no major do `next`**. A linha 16 usa flat config nativo e quebra o `FlatCompat` do `eslint.config.mjs` com erro obscuro (`Converting circular structure to JSON`).
 - Existe um `package-lock.json` solto em `C:\Users\augus\`; por isso o `outputFileTracingRoot` explícito no `next.config.ts` — sem ele o Next infere a home do usuário como raiz do workspace.
 - `npm audit` acusa vulnerabilidades altas em `postcss` e `sharp`, ambas transitivas dentro do próprio `next`. O `fix` sugerido regride o Next para a 9.3.3 — **não rodar `npm audit fix --force`**.
+- O Vitest **falha de forma intermitente** nesta máquina ao criar processos de worker: `Error: spawn UNKNOWN` com `errno -4094`. Aparece como `no tests` ou como falhas aparentemente aleatórias que não se repetem. Antes de investigar uma falha de teste, **rode de novo** — se a segunda rodada passa limpa, era isso. Se incomodar, `npx vitest run --pool=threads` costuma contornar.
+- O `@supabase/supabase-js` avisa que Node 20 está depreciado e pedirá Node 22+ em versões futuras. Ainda funciona, mas é um upgrade a agendar.
 
 ## Stack
 
