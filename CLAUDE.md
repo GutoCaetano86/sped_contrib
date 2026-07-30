@@ -147,9 +147,20 @@ O mapa vai para a `_META` na ida e é usado na volta. Verificado: aplicado ao ar
 
 O terceiro caso custou um bug: sem ele eu zerava o `M105` de arquivos cuja base nunca fechou (como a fixture `efd_reduzido.txt`, que tem valores embaralhados pelo anonimizador). Por isso o mapa é gravado **sempre**, mesmo vazio — a ausência da chave tem de significar outra coisa.
 
+### São DUAS regras no `M105`, não uma — custou uma rodada no PVA
+
+O PVA valida separadamente:
+
+1. **campo 4** (`VL_BC_*_TOT`) = soma dos documentos daquele NAT;
+2. **campo 6** (`VL_BC_*_NC`) = campo 4 − campo 5 (`..._CUM`).
+
+Na primeira versão eu corrigi só o campo 4. O PVA aceitou a estrutura e **recusou de novo com os mesmos 12 erros**, agora apontando o campo 6 — a mensagem muda de "igual ao somatório dos documentos" para "igual ao Valor Total menos a parcela vinculada a receitas com incidência cumulativa". Eu tinha medido essa identidade (45/45 no arquivo real) e registrado aqui embaixo, mas não implementado. `tests/sped/apuracao.test.ts` trava as duas agora.
+
+Quando `..._CUM` ≠ 0 a diferença vai inteira para a parcela não cumulativa, porque não há como saber como o item removido se dividia entre os regimes — e sai aviso dizendo isso.
+
 ### O que NÃO é recalculado, de propósito
 
-Só o campo 4 (`VL_BC_*_TOT`), que é soma pura dos documentos e é o único que o PVA cobrou. O campo 7 (a parcela rateada entre `COD_CRED`), o `M100` e o crédito aproveitado **não são tocados** — o rateio é parametrização do contribuinte, não regra do leiaute. Cada recálculo emite aviso dizendo isso.
+Os campos 4 e 6, e só. O campo 7 (a parcela rateada entre `COD_CRED`), o `M100` e o crédito aproveitado **não são tocados** — o rateio é parametrização do contribuinte, não regra do leiaute. Cada recálculo emite aviso dizendo isso.
 
 Relações que medi no arquivo real e que **são** soma pura, caso alguém queira ir além: `M200`/`M600` = Σ `M210`/`M610.VL_CONT_APUR`; `M400`/`M800` = Σ `M410`/`M810.VL_REC`; `M105.VL_BC_TOT` = `CUM` + `NC`; `M100.VL_BC_PIS` = Σ `M105` campo 7 (com arredondamento até 0,26); `M100.VL_CRED` = `VL_BC` × alíquota.
 

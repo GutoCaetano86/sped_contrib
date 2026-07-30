@@ -6,6 +6,7 @@
 import { beforeAll, describe, expect, it } from 'vitest';
 import { aprenderAtribuicao, recalcularBasesDeCredito } from '@/lib/sped/apuracao';
 import { carregarLayout } from '@/lib/sped/layout';
+import { paraDecimal } from '@/lib/sped/numeros';
 import { parseTxt } from '@/lib/sped/parser';
 import type { Layout, NoRegistro } from '@/lib/sped/types';
 
@@ -161,6 +162,35 @@ describe('recalcularBasesDeCredito', () => {
     expect(baseDoBalde(r.nos, 'M105', '01')).toBe('2000,00');
     expect(baseDoBalde(r.nos, 'M105', '03')).toBe('1000,00');
     expect(r.avisos.some((a) => /-500,00/.test(a.mensagem))).toBe(true);
+  });
+
+  it('mantém VL_BC_NC = VL_BC_TOT − VL_BC_CUM, que o PVA valida à parte', () => {
+    // Escapou na primeira versão: corrigi só o campo 4 e o PVA recusou de novo,
+    // agora apontando o campo 6. São duas regras, não uma.
+    const editado = semItem(arquivoQueFecha(), 'C170', '2');
+    const r = recalcularBasesDeCredito(editado, aprenderAtribuicao(arquivoQueFecha()).mapa);
+
+    for (const reg of ['M105', 'M505']) {
+      const no = r.nos.find((n) => n.reg === reg && n.valores[1] === '02')!;
+      expect(paraDecimal(no.valores[5])).toBe(
+        paraDecimal(no.valores[3]) - paraDecimal(no.valores[4]),
+      );
+    }
+  });
+
+  it('avisa quando joga a diferença inteira na parcela não cumulativa', () => {
+    const comCumulativa = arquivoQueFecha().map((n) =>
+      (n.reg === 'M105' || n.reg === 'M505') && n.valores[1] === '02'
+        ? { ...n, valores: n.valores.map((v, i) => (i === 4 ? '100,00' : v)) }
+        : n,
+    );
+    const { mapa } = aprenderAtribuicao(arquivoQueFecha());
+    const r = recalcularBasesDeCredito(semItem(comCumulativa, 'C170', '2'), mapa);
+
+    expect(r.avisos.some((a) => /parcela não cumulativa/.test(a.mensagem))).toBe(true);
+    const no = r.nos.find((n) => n.reg === 'M105' && n.valores[1] === '02')!;
+    // TOT vira 0,00 e CUM continua 100,00, entao NC fica -100,00.
+    expect(no.valores[5]).toBe('-100,00');
   });
 
   it('apagar item de A170 usa o NAT_BC_CRED declarado, sem depender do mapa', () => {

@@ -394,10 +394,23 @@ export function recalcularBasesDeCredito(
         continue;
       }
 
+      let cumulativaNaoNula = false;
       for (const no of alvos) {
         const original = no.valores[3] ?? '';
         no.valores[3] = formatarDecimal(depois, Math.max(2, casasDecimais(original)));
+
+        // Campo 6 (VL_BC_*_NC) = campo 4 (TOT) - campo 5 (CUM). O PVA valida
+        // esta identidade separadamente: corrigir so o total deixa o arquivo
+        // com a parcela nao cumulativa velha e ele recusa de novo.
+        const cumulativa = paraDecimal(no.valores[4]);
+        if (cumulativa !== 0n) cumulativaNaoNula = true;
+        const originalNc = no.valores[5] ?? '';
+        no.valores[5] = formatarDecimal(
+          depois - cumulativa,
+          Math.max(2, casasDecimais(originalNc)),
+        );
       }
+
       avisos.push({
         severidade: 'aviso',
         registro: APURACAO[tributo].filho,
@@ -407,6 +420,20 @@ export function recalcularBasesDeCredito(
           `→ ${formatarDecimal(depois)} (${diferenca}). Confira a apuração: o crédito ` +
           `aproveitado (campo VL_BC do M105 e o M100) não foi alterado.`,
       });
+
+      if (cumulativaNaoNula) {
+        // A diferenca foi toda para a parcela nao cumulativa, porque nao ha
+        // como saber como o item removido se dividia entre os dois regimes.
+        avisos.push({
+          severidade: 'aviso',
+          registro: APURACAO[tributo].filho,
+          linha: alvos[0]?.linhaOriginal,
+          mensagem:
+            `Em ${rotulo} a diferença foi lançada inteira na parcela não cumulativa; ` +
+            `a parcela cumulativa (VL_BC_*_CUM) ficou como estava. Se o item alterado ` +
+            `era vinculado a receita cumulativa, ajuste os dois na planilha.`,
+        });
+      }
     }
   }
 
