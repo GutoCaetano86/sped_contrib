@@ -20,7 +20,7 @@ Especificação completa em `docs/SPEC.md` (leia-a antes de implementar qualquer
 - [x] F1-T5 — serializer + round-trip byte a byte
 - [x] F1-T6 — totalizadores (round-trip byte a byte no arquivo real de 138.100 linhas)
 - [x] F1-T7 — validador (tabela 5.7 completa, CNPJ alfanumérico)
-- [x] F2-T1 — `to-excel.ts` (streaming, células como texto)
+- [x] F2-T1 — `to-excel.ts` (streaming, células como texto, colunas de contexto do pai)
 - [x] F2-T2 — `from-excel.ts` (mapeamento por nome, 6 casos de borda)
 - [x] F2-T3 — **teste de ouro**: round-trip completo byte a byte em 138.100 linhas
 - [x] F2-T4 — CLI `npm run convert`
@@ -90,11 +90,23 @@ Se ele quebrar depois de uma mudança, o defeito está em totalizadores, ordena�
 
 Dois caminhos de corrupção que o `from-excel.ts` trata e que valem conhecer, porque o Excel os cria silenciosamente: número onde havia texto com zero à esquerda (vira aviso quando o campo é `tamanho_fixo`), e **data digitada volta como número de série do Excel** — 44197 em vez de `01012021`. O segundo não tem como ser detectado sem saber que o campo é data, e por isso o `from-excel` usa a mesma convenção do validador (prefixo `DT_` com 8 posições).
 
-## Desempenho medido (F2-T1)
+## Colunas de contexto do pai (a aba do filho tem de se explicar sozinha)
 
-`gerarExcel` no arquivo real de 138.100 linhas / 17 MB: **19,9 MB de XLSX em 28 s**, heap de 148 MB, 3.262.545 células — todas conferidas contra a AST, zero divergência.
+Pedido do usuário, e não é cosmético: aberta a aba `C170`, não havia como saber a qual nota fiscal cada item pertence — o vínculo existia só na coluna `_pai`, que é id opaco e oculto. A macro VBA do próprio autor resolvia isso repetindo `CNPJ`, `Item Pai`, `NUM_DOC` e `COD_PART` nas primeiras colunas, e é a mesma ideia aqui.
 
-**A meta da spec §1.4 (50 MB em menos de 30 s) não é atendida por este caminho.** A taxa medida é ~0,6 MB/s de TXT, o que põe um arquivo de 50 MB em torno de 80 s — e isso só na geração do Excel, sem contar upload, parse e storage. Antes da Fase 3 é preciso decidir: aceitar o tempo maior, mover acima de 20 MB para Edge Function (como a spec §3.1 já prevê), ou otimizar. O gargalo provável é o `numFmt` por célula; vale medir com estilo só na coluna antes de otimizar às cegas.
+`to-excel.ts` insere, entre `_ordem` e `REG`, a coluna `_item_pai` (número da instância do registro pai) e até quatro campos identificadores de cada ancestral, tirados de `CAMPOS_DE_CONTEXTO`. Na `C170` do arquivo real saem `_item_pai _C010_CNPJ _C100_NUM_DOC _C100_COD_PART _C100_SER _C100_DT_DOC`.
+
+**O nome levar o registro de origem não é enfeite — é o que evita dois defeitos.** `CNPJ` aparece como campo de verdade em 17 registros, `NUM_DOC` em 17, `COD_MOD` em 24: uma coluna chamada só `CNPJ` na aba do `C170` daria cabeçalho duplicado e o `from-excel`, que mapeia **por nome** (spec §5.4), erraria o campo — a mesma classe de problema do `QUANT_BC` duplicado do `C170`. E o prefixo `_` é o que faz o `from-excel` ignorar essas colunas sem precisar de uma linha de código lá: nenhum campo do leiaute começa com sublinhado.
+
+Duas decisões que evitam ruído: ancestral de nível 0 (o `0000`) é pulado, porque o CNPJ dele é o mesmo em todas as 138.100 linhas; e a aba só ganha as derivadas quando há contexto útil — `C001`, cujo pai é o `0000`, e `M210`, cujo pai `M200` não tem campo identificador, não ganham nenhuma.
+
+As derivadas saem travadas, com cabeçalho em verde e comentário dizendo de onde o valor vem. **Editar ali não altera o TXT** — a correção tem de ser feita no registro de origem.
+
+## Desempenho medido
+
+`gerarExcel` no arquivo real de 138.100 linhas / 17 MB: **24,3 MB de XLSX em 35,6 s**, heap de 335 MB. As colunas de contexto custaram +22% de tamanho e +27% de tempo sobre a medição original de F2-T1 (19,9 MB em 28 s, heap 148 MB) — o preço da usabilidade que o usuário pediu.
+
+**A meta da spec §1.4 (50 MB em menos de 30 s) não é atendida por este caminho.** A taxa medida é ~0,5 MB/s de TXT, o que põe um arquivo de 50 MB em torno de 105 s — e isso só na geração do Excel, sem contar upload, parse e storage. Antes de fechar a Fase 3 é preciso decidir: aceitar o tempo maior, mover acima de 20 MB para Edge Function (como a spec §3.1 já prevê), ou otimizar. O gargalo provável é o `numFmt` por célula; vale medir com estilo só na coluna antes de otimizar às cegas.
 
 ## Banco e segurança (F3-T1)
 
@@ -148,7 +160,7 @@ supabase/migrations/  # tabelas perfis, arquivos, conversoes — todas com RLS p
 
 **Decisão de arquitetura registrada (spec §3.1):** `lib/sped/` é TypeScript puro — sem import de React, Next ou Supabase — para rodar isolado no Vitest e permitir extração futura para pacote npm ou Edge Function.
 
-**Pipeline TXT → XLSX** (spec §3.3): upload valida extensão/tamanho/`|0000|` inicial → `parser.ts` monta a AST resolvendo hierarquia por pilha de níveis → `validator.ts` anota erros/avisos sem bloquear → `to-excel.ts` gera o XLSX (streaming `WorkbookWriter`, células de dados sempre `numFmt: '@'` para não corromper zeros à esquerda) → grava em `outputs/{user_id}/`.
+**Pipeline TXT → XLSX** (spec §3.3): upload valida extensão/tamanho/`|0000|` inicial → `parser.ts` monta a AST resolvendo hierarquia por pilha de níveis → `validator.ts` anota erros/avisos sem bloquear → `to-excel.ts` gera o XLSX (streaming `WorkbookWriter`, células de dados sempre `numFmt: '@'` para não corromper zeros à esquerda, colunas `_{REG}_{CAMPO}` com o contexto do pai) → grava em `outputs/{user_id}/`.
 
 **Pipeline XLSX → TXT** (spec §3.4): `from-excel.ts` lê a aba `_META` (contrato de reconversão — se `layout`/`versao_guia` divergir, recusa) → reconstrói AST por `_ordem`/`_id`/`_pai` → `validator.ts` aqui **bloqueia** em erro → `totalizers.ts` recalcula `X990`/`9900`/`9990`/`9999` → `serializer.ts` gera o TXT final.
 

@@ -24,6 +24,29 @@ async function abrir(buffer: Buffer): Promise<ExcelJS.Workbook> {
 
 const doArquivo = (nome: string): ResultadoParse => parseTxt(fixture(nome), layout);
 
+/**
+ * Coluna do campo 1 (REG) na aba.
+ *
+ * Nao e uma posicao fixa: antes dos campos do leiaute vem as colunas de
+ * controle e, na aba de registro filho, as colunas derivadas do pai. Procurar
+ * pelo cabecalho e o mesmo que o from-excel.ts faz.
+ */
+/** Comentario da celula; o exceljs devolve string ou texto rico. */
+function textoDaNota(celula: ExcelJS.Cell): string {
+  const nota = celula.note;
+  if (typeof nota === 'string') return nota;
+  return (nota?.texts ?? []).map((t) => t.text).join('');
+}
+
+function colunaDoReg(ws: ExcelJS.Worksheet): number {
+  let achada = 0;
+  ws.getRow(1).eachCell({ includeEmpty: false }, (celula, coluna) => {
+    if (achada === 0 && String(celula.value) === 'REG') achada = coluna;
+  });
+  expect(achada, `aba ${ws.name} sem coluna REG`).toBeGreaterThan(0);
+  return achada;
+}
+
 describe('gerarExcel — criterio de aceite: nada de coercao do Excel', () => {
   it('"00123" continua "00123" e "0,65" continua "0,65"', async () => {
     // O criterio explicito de F2-T1. Sem numFmt '@' o Excel transforma o
@@ -72,8 +95,9 @@ describe('gerarExcel — criterio de aceite: nada de coercao do Excel', () => {
         .find((l) => l.getCell(1).value === no.id);
       expect(linha, `linha do no ${no.id} (${no.reg})`).toBeDefined();
 
+      const primeira = colunaDoReg(ws!);
       no.valores.forEach((valor, i) => {
-        const celula = linha!.getCell(4 + i);
+        const celula = linha!.getCell(primeira + i);
         const lido = celula.value === null ? '' : String(celula.value);
         expect(lido, `${no.reg} campo ${i + 1}`).toBe(valor);
         conferidos++;
@@ -176,8 +200,7 @@ describe('gerarExcel — formatacao do cabecalho', () => {
     const ws = wb.getWorksheet('0000')!;
 
     // campo 9 do 0000 e o CNPJ: N 014*, obrigatorio
-    const nota = ws.getRow(1).getCell(3 + 9).note;
-    const texto = typeof nota === 'string' ? nota : (nota?.texts ?? []).map((t) => t.text).join('');
+    const texto = textoDaNota(ws.getRow(1).getCell(3 + 9));
     expect(texto).toContain('N 014*');
     expect(texto).toContain('obrigatório');
   });
@@ -249,6 +272,129 @@ describe('gerarExcel — aba _ERROS', () => {
   });
 });
 
+describe('gerarExcel — colunas de contexto do registro pai', () => {
+  /** Cabecalhos da linha 1, na ordem em que aparecem. */
+  const cabecalhos = (ws: ExcelJS.Worksheet): string[] => {
+    const nomes: string[] = [];
+    ws.getRow(1).eachCell({ includeEmpty: false }, (celula) => nomes.push(String(celula.value)));
+    return nomes;
+  };
+
+  it('a aba C170 traz item, CNPJ do C010 e identificacao do C100 antes de REG', async () => {
+    const wb = await abrir(await gerarExcel(doArquivo('efd_reduzido.txt'), layout));
+    const nomes = cabecalhos(wb.getWorksheet('C170')!);
+
+    // Sem isto o usuario abre a aba dos itens e nao sabe de qual nota cada
+    // item e: o vinculo existe so no _pai, que e id opaco e oculto.
+    expect(nomes.slice(0, 3)).toEqual(['_id', '_pai', '_ordem']);
+    expect(nomes).toContain('_item_pai');
+    expect(nomes).toContain('_C010_CNPJ');
+    expect(nomes).toContain('_C100_NUM_DOC');
+    expect(nomes).toContain('_C100_COD_PART');
+    // e todas antes do primeiro campo do proprio registro
+    expect(nomes.indexOf('_C100_NUM_DOC')).toBeLessThan(nomes.indexOf('REG'));
+  });
+
+  it('o valor da coluna derivada e o do registro pai daquela linha', async () => {
+    const res = doArquivo('efd_reduzido.txt');
+    const wb = await abrir(await gerarExcel(res, layout));
+    const ws = wb.getWorksheet('C170')!;
+    const nomes = cabecalhos(ws);
+    const col = (nome: string) => nomes.indexOf(nome) + 1;
+
+    const porId = new Map(res.nos.map((n) => [n.id, n]));
+    let conferidos = 0;
+
+    ws.eachRow((linha, n) => {
+      if (n === 1) return;
+      const no = porId.get(String(linha.getCell(1).value));
+      expect(no).toBeDefined();
+      const c100 = porId.get(no!.paiId ?? '');
+      expect(c100?.reg).toBe('C100');
+      const c010 = porId.get(c100!.paiId ?? '');
+      expect(c010?.reg).toBe('C010');
+
+      // C100: 04 COD_PART, 07 SER, 08 NUM_DOC. C010: 02 CNPJ.
+      expect(String(linha.getCell(col('_C100_NUM_DOC')).value)).toBe(c100!.valores[7]);
+      expect(String(linha.getCell(col('_C100_COD_PART')).value)).toBe(c100!.valores[3]);
+      expect(String(linha.getCell(col('_C010_CNPJ')).value)).toBe(c010!.valores[1]);
+      conferidos++;
+    });
+
+    expect(conferidos).toBeGreaterThan(0);
+  });
+
+  it('_item_pai numera a instancia do pai, para agrupar os itens de uma nota', async () => {
+    const res = parseTxt(
+      txt(
+        '|0000|006|0|||01122021|31122021|EMPRESA|11111111000191|RS|4314902|||1|',
+        '|C001|0|',
+        '|C010|11111111000191|2|',
+        '|C100|0|1|F001|55|00|1|100|CHV|01122021|01122021|1000,00|',
+        '|C170|1|IT1|PRIMEIRO ITEM|',
+        '|C170|2|IT2|SEGUNDO ITEM|',
+        '|C100|0|1|F001|55|00|1|200|CHV|02122021|02122021|2000,00|',
+        '|C170|1|IT3|TERCEIRO ITEM|',
+      ),
+      layout,
+    );
+    const ws = (await abrir(await gerarExcel(res, layout))).getWorksheet('C170')!;
+    const nomes = cabecalhos(ws);
+    const colItem = nomes.indexOf('_item_pai') + 1;
+    const colNum = nomes.indexOf('_C100_NUM_DOC') + 1;
+
+    const itens: string[] = [];
+    const numeros: string[] = [];
+    ws.eachRow((linha, n) => {
+      if (n === 1) return;
+      itens.push(String(linha.getCell(colItem).value));
+      numeros.push(String(linha.getCell(colNum).value));
+    });
+
+    expect(itens).toEqual(['1', '1', '2']);
+    expect(numeros).toEqual(['100', '100', '200']);
+  });
+
+  it('coluna derivada nunca colide com campo do leiaute e se anuncia como derivada', async () => {
+    // O prefixo `_` e o que garante as duas coisas: nenhum campo do leiaute
+    // comeca com sublinhado, entao o from-excel.ts ignora estas colunas ao
+    // remontar o TXT e o mapeamento por nome nao erra o campo.
+    const wb = await abrir(await gerarExcel(doArquivo('efd_reduzido.txt'), layout));
+    const nomesDeCampo = new Set(
+      [...layout.registros.values()].flatMap((r) => r.campos.map((c) => c.nome)),
+    );
+
+    for (const ws of wb.worksheets) {
+      for (const nome of cabecalhos(ws)) {
+        if (!nome.startsWith('_')) continue;
+        expect(nomesDeCampo.has(nome), `${ws.name}: ${nome} colide com campo do leiaute`).toBe(
+          false,
+        );
+      }
+    }
+
+    // O usuario tem de descobrir na planilha que editar ali nao muda o TXT:
+    // cor propria no cabecalho e comentario dizendo de onde o valor vem.
+    const ws = wb.getWorksheet('C170')!;
+    const cabecalho = ws.getRow(1);
+    const coluna = cabecalhos(ws).indexOf('_C100_NUM_DOC') + 1;
+    const fill = cabecalho.getCell(coluna).fill;
+    expect(fill?.type === 'pattern' && fill.fgColor?.argb).toBe('FF375623');
+    expect(textoDaNota(cabecalho.getCell(coluna))).toMatch(/derivada/i);
+    expect(textoDaNota(cabecalho.getCell(coluna))).toMatch(/C100/);
+  });
+
+  it('aba sem contexto util nao ganha coluna derivada', async () => {
+    const wb = await abrir(await gerarExcel(doArquivo('efd_reduzido.txt'), layout));
+
+    // 0000 nao tem pai; C001 tem, mas o pai (0000) nao identifica documento.
+    for (const aba of ['0000', 'C001']) {
+      const nomes = cabecalhos(wb.getWorksheet(aba)!);
+      expect(nomes.filter((n) => n.startsWith('_'))).toEqual(['_id', '_pai', '_ordem']);
+    }
+  });
+});
+
 describe('gerarExcel — registro fora do dicionario', () => {
   it('gera aba com colunas posicionais em vez de descartar a linha', async () => {
     // I001 e I990 aparecem em arquivo real; o bloco I tem leiaute em ADE
@@ -257,8 +403,8 @@ describe('gerarExcel — registro fora do dicionario', () => {
     const ws = wb.getWorksheet('I001');
     expect(ws).toBeDefined();
 
-    expect(ws!.getRow(1).getCell(4).value).toBe('REG');
-    expect(String(ws!.getRow(1).getCell(5).value)).toMatch(/^CAMPO_\d{2}$/);
-    expect(ws!.getRow(2).getCell(4).value).toBe('I001');
+    const primeira = colunaDoReg(ws!);
+    expect(String(ws!.getRow(1).getCell(primeira + 1).value)).toMatch(/^CAMPO_\d{2}$/);
+    expect(ws!.getRow(2).getCell(primeira).value).toBe('I001');
   });
 });
