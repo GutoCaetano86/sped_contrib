@@ -29,7 +29,14 @@
 // errado — e o PVA acusaria os DOIS baldes, porque valida exatamente esta
 // relacao. O erro aparece na validacao, nao passa silencioso.
 import type { ErroValidacao, MapaAtribuicao, NoRegistro } from './types';
-import { casasDecimais, formatarDecimal, paraDecimal } from './numeros';
+import {
+  ESCALA,
+  arredondar,
+  casasDecimais,
+  formatarDecimal,
+  paraDecimal,
+  ratearProporcional,
+} from './numeros';
 
 export type { MapaAtribuicao };
 
@@ -82,6 +89,39 @@ const APURACAO: Record<Tributo, { pai: string; filho: string; aliquotaDoPai: num
   pis: { pai: 'M100', filho: 'M105', aliquotaDoPai: 5 },
   cofins: { pai: 'M500', filho: 'M505', aliquotaDoPai: 5 },
 };
+
+/** Registro de consolidacao do periodo, onde a cascata termina. */
+const CONSOLIDACAO: Record<Tributo, string> = { pis: 'M200', cofins: 'M600' };
+
+/** Campos do M100/M500 (mesma numeracao nos dois). */
+const CR = {
+  base: 4,
+  aliquota: 5,
+  credito: 8,
+  ajusteAcrescimo: 9,
+  ajusteReducao: 10,
+  creditoDiferido: 11,
+  creditoDisponivel: 12,
+  indicadorDesconto: 13,
+  creditoDescontado: 14,
+  saldo: 15,
+} as const;
+
+/** Campos do M105/M505. */
+const BC = { natureza: 2, cst: 3, total: 4, cumulativa: 5, naoCumulativa: 6, rateada: 7 } as const;
+
+/** Campos do M200/M600 (mesma numeracao nos dois). */
+const CONS = {
+  contribuicaoPeriodo: 2,
+  creditoDescontado: 3,
+  creditoDescontadoAnterior: 4,
+  contribuicaoDevida: 5,
+  retencao: 6,
+  outrasDeducoes: 7,
+  contribuicaoRecolher: 8,
+  cumulativaRecolher: 12,
+  totalRecolher: 13,
+} as const;
 
 /** CST que geram credito: 50 a 56 e 60 a 66 (tabela 4.3.7 do guia). */
 const CST_CREDITO = new Set(
@@ -298,6 +338,184 @@ export interface ResultadoRecalculo {
 }
 
 /**
+ * Grava o campo mantendo o estilo do arquivo, e so quando o valor mudou.
+ *
+ * Comparar pelo NUMERO, e nao pelo texto, e o que preserva o round-trip byte a
+ * byte: o arquivo real grava "136540291,4" com uma casa, e reescrever isso
+ * como "136540291,40" mudaria bytes sem mudar valor.
+ */
+function gravar(no: NoRegistro, campoNum: number, valor: bigint): boolean {
+  const original = no.valores[campoNum - 1] ?? '';
+  const casas = Math.max(2, casasDecimais(original));
+  if (paraDecimal(original) === arredondar(valor, casas)) return false;
+  no.valores[campoNum - 1] = formatarDecimal(valor, casas);
+  return true;
+}
+
+/**
+ * Propaga a mudanca da base ate a contribuicao a recolher.
+ *
+ * Todas as relacoes daqui foram medidas no arquivo aprovado pelo PVA e valem
+ * 9 de 9 — nenhuma exige julgamento fiscal:
+ *
+ *   soma do campo 7 dos M105 do grupo = campo 6           (o PVA valida)
+ *   M100.VL_BC       = soma dos campos 7 dos seus filhos
+ *   M100.VL_CRED     = VL_BC x aliquota
+ *   VL_CRED_DISP     = VL_CRED + acrescimos - reducoes - diferido
+ *   IND_DESC_CRED=0  -> VL_CRED_DESC = VL_CRED_DISP e SLD_CRED = 0
+ *   IND_DESC_CRED=1  -> VL_CRED_DESC fica como esta e SLD_CRED = DISP - DESC
+ *   M200.VL_TOT_CRED_DESC = soma dos VL_CRED_DESC
+ *   M200.VL_TOT_CONT_NC_DEV = contribuicao - credito descontado - credito anterior
+ *
+ * **Isto altera o valor a recolher.** E o efeito correto de remover um item
+ * de documento — menos crédito, mais imposto —, mas quem confere é o usuário.
+ */
+function cascatear(nos: NoRegistro[], tributo: Tributo, avisos: ErroValidacao[]): void {
+  const { pai, filho } = APURACAO[tributo];
+
+  // --- campo 7: mantem a proporcao do rateio entre os COD_CRED -------------
+  // Roda SEMPRE, e nao so quando o campo 4 mudou: um arquivo pode chegar com o
+  // total ja corrigido e o rateio velho — foi exatamente o caso do arquivo que
+  // o PVA recusou na terceira rodada. Em arquivo consistente e no-op, e por
+  // isso o round-trip byte a byte continua de pe.
+  //
+  // O grupo e (aliquota, natureza, valor do campo 6): o mesmo par
+  // aliquota/natureza pode alimentar duas familias de COD_CRED, e o que as
+  // separa e justamente o valor declarado.
+  const grupos = new Map<string, NoRegistro[]>();
+  const ordenadosParaGrupo = [...nos].sort((a, b) => a.ordem - b.ordem);
+  let aliquotaCorrente = '';
+  for (const no of ordenadosParaGrupo) {
+    if (no.reg === pai) {
+      aliquotaCorrente = no.valores[CR.aliquota - 1] ?? '';
+    } else if (no.reg === filho) {
+      const k = [
+        aliquotaCorrente.trim(),
+        (no.valores[BC.natureza - 1] ?? '').trim(),
+        (no.valores[BC.cst - 1] ?? '').trim(),
+        (no.valores[BC.naoCumulativa - 1] ?? '').trim(),
+      ].join('|');
+      grupos.set(k, [...(grupos.get(k) ?? []), no]);
+    }
+  }
+
+  // Guarda o valor ANTES de reescrever, para medir o delta de cada M100.
+  const anterior = new Map<NoRegistro, bigint>();
+  const CENTAVO = 10n ** BigInt(ESCALA - 2);
+
+  for (const doGrupo of grupos.values()) {
+    const alvo = paraDecimal(doGrupo[0]?.valores[BC.naoCumulativa - 1]);
+    const atuais = doGrupo.map((n) => paraDecimal(n.valores[BC.rateada - 1]));
+    const soma = atuais.reduce((a, b) => a + b, 0n);
+
+    // Tolerancia de um centavo por parcela. O arquivo real aprovado pelo PVA
+    // tem 4 grupos por tributo fora por exatamente 0,01 — cada parcela do
+    // rateio e arredondada em separado, e o PVA aceita. Sem esta folga o
+    // recalculo "consertaria" esses centavos e o round-trip byte a byte
+    // morreria em arquivo que ninguem editou.
+    const tolerancia = BigInt(doGrupo.length) * CENTAVO;
+    const diferenca = soma > alvo ? soma - alvo : alvo - soma;
+    if (diferenca <= tolerancia) continue;
+
+    doGrupo.forEach((n, i) => anterior.set(n, atuais[i] ?? 0n));
+    const novos = ratearProporcional(atuais, alvo);
+    doGrupo.forEach((n, i) => gravar(n, BC.rateada, novos[i] ?? 0n));
+  }
+  if (anterior.size === 0) return;
+
+  // --- M100/M500 e, no fim, a consolidacao do periodo ----------------------
+  const ordenados = [...nos].sort((a, b) => a.ordem - b.ordem);
+  let corrente: NoRegistro | null = null;
+  let filhos: NoRegistro[] = [];
+  let algumM100Mudou = false;
+
+  const fechaM100 = (): void => {
+    if (!corrente) return;
+    // O arquivo real tem ate 0,26 de diferenca entre VL_BC e a soma dos campos
+    // 7, e o PVA aceita. Aplicar so o DELTA preserva essa folga em vez de
+    // "corrigi-la" e mexer onde ninguem pediu.
+    const delta = filhos.reduce((a, n) => {
+      const agora = paraDecimal(n.valores[BC.rateada - 1]);
+      return a + (agora - (anterior.get(n) ?? agora));
+    }, 0n);
+    if (delta === 0n) {
+      corrente = null;
+      filhos = [];
+      return;
+    }
+    algumM100Mudou = true;
+
+    const novaBase = paraDecimal(corrente.valores[CR.base - 1]) + delta;
+    gravar(corrente, CR.base, novaBase);
+
+    const aliquota = paraDecimal(corrente.valores[CR.aliquota - 1]);
+    const credito = arredondar((novaBase * aliquota) / 100n / 10n ** BigInt(ESCALA), 2);
+    gravar(corrente, CR.credito, credito);
+
+    const disponivel =
+      credito +
+      paraDecimal(corrente.valores[CR.ajusteAcrescimo - 1]) -
+      paraDecimal(corrente.valores[CR.ajusteReducao - 1]) -
+      paraDecimal(corrente.valores[CR.creditoDiferido - 1]);
+    gravar(corrente, CR.creditoDisponivel, disponivel);
+
+    // O proprio registro declara se o desconto e total ou parcial.
+    if ((corrente.valores[CR.indicadorDesconto - 1] ?? '').trim() === '1') {
+      const descontado = paraDecimal(corrente.valores[CR.creditoDescontado - 1]);
+      gravar(corrente, CR.saldo, disponivel - descontado);
+    } else {
+      gravar(corrente, CR.creditoDescontado, disponivel);
+      gravar(corrente, CR.saldo, 0n);
+    }
+
+    corrente = null;
+    filhos = [];
+  };
+
+  for (const no of ordenados) {
+    if (no.reg === pai) {
+      fechaM100();
+      corrente = no;
+      filhos = [];
+    } else if (no.reg === filho && corrente) {
+      filhos.push(no);
+    }
+  }
+  fechaM100();
+
+  if (!algumM100Mudou) return;
+
+  // --- consolidacao do periodo --------------------------------------------
+  const descontado = ordenados
+    .filter((n) => n.reg === pai)
+    .reduce((a, n) => a + paraDecimal(n.valores[CR.creditoDescontado - 1]), 0n);
+
+  for (const no of ordenados) {
+    if (no.reg !== CONSOLIDACAO[tributo]) continue;
+    const campo = (i: number) => paraDecimal(no.valores[i - 1]);
+
+    gravar(no, CONS.creditoDescontado, descontado);
+    const devida =
+      campo(CONS.contribuicaoPeriodo) - descontado - campo(CONS.creditoDescontadoAnterior);
+    gravar(no, CONS.contribuicaoDevida, devida);
+    const aRecolher = devida - campo(CONS.retencao) - campo(CONS.outrasDeducoes);
+    gravar(no, CONS.contribuicaoRecolher, aRecolher);
+    gravar(no, CONS.totalRecolher, aRecolher + campo(CONS.cumulativaRecolher));
+
+    avisos.push({
+      severidade: 'aviso',
+      registro: no.reg,
+      linha: no.linhaOriginal,
+      mensagem:
+        `Apuração de ${tributo.toUpperCase()} recalculada em cascata: crédito ` +
+        `descontado ${formatarDecimal(descontado)}, contribuição a recolher ` +
+        `${formatarDecimal(aRecolher)}. **Isto altera o valor devido** — confira antes ` +
+        `de transmitir.`,
+    });
+  }
+}
+
+/**
  * Reescreve M105/M505 campo 4 a partir dos documentos.
  *
  * Só toca no campo cujo valor mudou: sem edicao, o arquivo sai byte a byte
@@ -417,8 +635,7 @@ export function recalcularBasesDeCredito(
         linha: alvos[0]?.linhaOriginal,
         mensagem:
           `Base de cálculo do crédito recalculada em ${rotulo}: ${formatarDecimal(antes)} ` +
-          `→ ${formatarDecimal(depois)} (${diferenca}). Confira a apuração: o crédito ` +
-          `aproveitado (campo VL_BC do M105 e o M100) não foi alterado.`,
+          `→ ${formatarDecimal(depois)} (${diferenca}).`,
       });
 
       if (cumulativaNaoNula) {
@@ -435,6 +652,9 @@ export function recalcularBasesDeCredito(
         });
       }
     }
+
+    // Reconcilia o rateio e propaga ate a contribuicao a recolher.
+    cascatear(nos, tributo, avisos);
   }
 
   return { nos, erros, avisos };

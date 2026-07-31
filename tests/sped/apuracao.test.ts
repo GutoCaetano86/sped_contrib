@@ -65,14 +65,26 @@ function arquivoQueFecha(): NoRegistro[] {
     c170('1', '1102', '2000,00'),
     c170('2', '1101', '500,00'),
     linha('M001', { 2: '0' }),
-    linha('M100', { 2: '101', 3: '0', 4: '3500,00', 5: '1,65', 8: '57,75' }),
+    // VL_CRED = VL_BC x aliquota; DISP = VL_CRED; IND_DESC_CRED 0 = desconto
+    // total, entao DESC = DISP e SLD = 0. Sao as identidades que o PVA valida.
+    linha('M100', {
+      2: '101', 3: '0', 4: '3500,00', 5: '1,65', 8: '57,75',
+      12: '57,75', 13: '0', 14: '57,75', 15: '0,00',
+    }),
     m105('01', '2000,00'),
     m105('02', '500,00'),
     m105('03', '1000,00'),
-    linha('M500', { 2: '101', 3: '0', 4: '3500,00', 5: '7,6', 8: '266,00' }),
+    linha('M200', { 2: '100,00', 3: '57,75', 4: '0,00', 5: '42,25', 6: '0,00',
+                    7: '0,00', 8: '42,25', 12: '0,00', 13: '42,25' }),
+    linha('M500', {
+      2: '101', 3: '0', 4: '3500,00', 5: '7,6', 8: '266,00',
+      12: '266,00', 13: '0', 14: '266,00', 15: '0,00',
+    }),
     m505('01', '2000,00'),
     m505('02', '500,00'),
     m505('03', '1000,00'),
+    linha('M600', { 2: '500,00', 3: '266,00', 4: '0,00', 5: '234,00', 6: '0,00',
+                    7: '0,00', 8: '234,00', 12: '0,00', 13: '234,00' }),
   ];
   return parseTxt(Buffer.from(linhas.join('\r\n') + '\r\n', 'latin1'), layout).nos;
 }
@@ -164,6 +176,24 @@ describe('recalcularBasesDeCredito', () => {
     expect(r.avisos.some((a) => /-500,00/.test(a.mensagem))).toBe(true);
   });
 
+  it('tolera o centavo de arredondamento do rateio, sem "consertar" o arquivo', () => {
+    // O arquivo real aprovado tem 4 grupos por tributo em que a soma do campo 7
+    // difere do campo 6 por exatamente 0,01 — cada parcela é arredondada em
+    // separado e o PVA aceita. Sem esta folga o recálculo reescreveria esses
+    // centavos e o round-trip byte a byte morreria em arquivo não editado.
+    const nos = arquivoQueFecha().map((n) =>
+      n.reg === 'M105' && n.valores[1] === '01'
+        ? { ...n, valores: n.valores.map((v, i) => (i === 6 ? '2000,01' : v)) }
+        : n,
+    );
+    const antes = nos.map((n) => n.valores.join('|'));
+
+    const r = recalcularBasesDeCredito(nos, aprenderAtribuicao(arquivoQueFecha()).mapa);
+
+    expect(r.erros).toEqual([]);
+    expect(r.nos.map((n) => n.valores.join('|'))).toEqual(antes);
+  });
+
   it('mantém VL_BC_NC = VL_BC_TOT − VL_BC_CUM, que o PVA valida à parte', () => {
     // Escapou na primeira versão: corrigi só o campo 4 e o PVA recusou de novo,
     // agora apontando o campo 6. São duas regras, não uma.
@@ -201,13 +231,32 @@ describe('recalcularBasesDeCredito', () => {
     expect(baseDoBalde(r.nos, 'M105', '03')).toBe('0,00');
   });
 
-  it('o aviso avisa que o crédito aproveitado NÃO foi mexido', () => {
-    // Recalcular o rateio entre COD_CRED é parametrização do contribuinte, não
-    // regra do leiaute. O usuário precisa saber que essa parte é com ele.
+  it('propaga a cascata até o crédito e avisa que o valor devido mudou', () => {
+    // O PVA valida a cadeia inteira: soma do campo 7 = campo 6, VL_BC do M100
+    // = soma dos campos 7, VL_CRED = VL_BC x alíquota. Parar no campo 4 fez
+    // ele recusar o arquivo três vezes.
     const editado = semItem(arquivoQueFecha(), 'C170', '2');
     const r = recalcularBasesDeCredito(editado, aprenderAtribuicao(arquivoQueFecha()).mapa);
 
-    expect(r.avisos[0]?.mensagem).toMatch(/crédito aproveitado.*não foi alterado/);
+    const m105 = r.nos.filter((n) => n.reg === 'M105');
+    const m100 = r.nos.find((n) => n.reg === 'M100')!;
+
+    // campo 7 acompanhou o campo 6 em cada balde
+    for (const no of m105) {
+      expect(paraDecimal(no.valores[6])).toBe(paraDecimal(no.valores[5]));
+    }
+    // M100.VL_BC = soma dos campos 7; VL_CRED = VL_BC x 1,65%
+    const soma = m105.reduce((a, n) => a + paraDecimal(n.valores[6]), 0n);
+    expect(paraDecimal(m100.valores[3])).toBe(soma);
+    expect(m100.valores[3]).toBe('3000,00');
+    expect(m100.valores[7]).toBe('49,50');
+
+    // A consolidacao do periodo acompanha: menos credito, mais imposto.
+    const m200 = r.nos.find((n) => n.reg === 'M200')!;
+    expect(m200.valores[2]).toBe('49,50');   // credito descontado
+    expect(m200.valores[4]).toBe('50,50');   // contribuicao devida: 100,00 - 49,50
+    expect(m200.valores[7]).toBe('50,50');   // a recolher
+    expect(r.avisos.some((a) => /altera o valor devido/.test(a.mensagem))).toBe(true);
   });
 
   it('BLOQUEIA quando a base mudou e não há mapa', () => {

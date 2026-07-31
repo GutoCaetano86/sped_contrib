@@ -147,22 +147,42 @@ O mapa vai para a `_META` na ida e é usado na volta. Verificado: aplicado ao ar
 
 O terceiro caso custou um bug: sem ele eu zerava o `M105` de arquivos cuja base nunca fechou (como a fixture `efd_reduzido.txt`, que tem valores embaralhados pelo anonimizador). Por isso o mapa é gravado **sempre**, mesmo vazio — a ausência da chave tem de significar outra coisa.
 
-### São DUAS regras no `M105`, não uma — custou uma rodada no PVA
+### A cadeia inteira, e ela custou TRÊS rodadas no PVA
 
-O PVA valida separadamente:
+O PVA valida cada elo separadamente, e corrigir um só faz ele apontar o próximo. A ordem em que apareceram:
 
-1. **campo 4** (`VL_BC_*_TOT`) = soma dos documentos daquele NAT;
-2. **campo 6** (`VL_BC_*_NC`) = campo 4 − campo 5 (`..._CUM`).
+| Rodada | O que ele cobrou |
+| --- | --- |
+| 1ª | **campo 4** (`VL_BC_*_TOT`) = soma dos documentos daquele NAT |
+| 2ª | **campo 6** (`VL_BC_*_NC`) = campo 4 − campo 5 (`..._CUM`) |
+| 3ª | **Σ campo 7** do grupo (mesmo CST, natureza, alíquota e tipo de crédito) = campo 6 |
 
-Na primeira versão eu corrigi só o campo 4. O PVA aceitou a estrutura e **recusou de novo com os mesmos 12 erros**, agora apontando o campo 6 — a mensagem muda de "igual ao somatório dos documentos" para "igual ao Valor Total menos a parcela vinculada a receitas com incidência cumulativa". Eu tinha medido essa identidade (45/45 no arquivo real) e registrado aqui embaixo, mas não implementado. `tests/sped/apuracao.test.ts` trava as duas agora.
+Daí para baixo é aritmética, tudo medido 9/9 no arquivo aprovado:
 
-Quando `..._CUM` ≠ 0 a diferença vai inteira para a parcela não cumulativa, porque não há como saber como o item removido se dividia entre os regimes — e sai aviso dizendo isso.
+```
+M100.VL_BC        = soma dos campos 7 dos filhos
+M100.VL_CRED      = VL_BC × alíquota
+VL_CRED_DISP      = VL_CRED + acréscimos − reduções − diferido
+IND_DESC_CRED = 0 → VL_CRED_DESC = DISP e SLD_CRED = 0
+IND_DESC_CRED = 1 → VL_CRED_DESC fica como está e SLD_CRED = DISP − DESC
+M200.VL_TOT_CRED_DESC   = Σ M100.VL_CRED_DESC
+M200.VL_TOT_CONT_NC_DEV = contribuição − crédito descontado − crédito anterior
+```
+
+O rateio do campo 7 vem do `0111` (15,974950% / 82,261940% / 1,763110% no arquivo real) e é preservado por proporção, com o resíduo do arredondamento na maior parcela.
+
+**A cascata altera o valor a recolher** — no arquivo real, de 0,00 para 21,15 de PIS. É o efeito correto de remover um item de documento, mas o aviso diz isso em letras garrafais e o usuário tem de conferir.
+
+### Duas armadilhas que quebraram o round-trip
+
+1. **A reconciliação do campo 7 tem de ser incondicional**, não só quando o campo 4 muda. Um arquivo pode chegar com o total já corrigido e o rateio velho — foi exatamente o caso na terceira rodada, e por isso a correção não rodou.
+2. **Tolerância de 1 centavo por parcela.** O arquivo aprovado tem 4 grupos por tributo em que Σ campo 7 difere do campo 6 por exatamente 0,01 — cada parcela é arredondada em separado e o PVA aceita. Sem a folga, o recálculo "conserta" esses centavos e o teste de ouro morre em arquivo que ninguém editou.
 
 ### O que NÃO é recalculado, de propósito
 
-Os campos 4 e 6, e só. O campo 7 (a parcela rateada entre `COD_CRED`), o `M100` e o crédito aproveitado **não são tocados** — o rateio é parametrização do contribuinte, não regra do leiaute. Cada recálculo emite aviso dizendo isso.
+`VL_CRED_DESC` quando `IND_DESC_CRED = 1` (desconto parcial): quanto do crédito usar é decisão do contribuinte. Fora isso a cadeia é completa.
 
-Relações que medi no arquivo real e que **são** soma pura, caso alguém queira ir além: `M200`/`M600` = Σ `M210`/`M610.VL_CONT_APUR`; `M400`/`M800` = Σ `M410`/`M810.VL_REC`; `M105.VL_BC_TOT` = `CUM` + `NC`; `M100.VL_BC_PIS` = Σ `M105` campo 7 (com arredondamento até 0,26); `M100.VL_CRED` = `VL_BC` × alíquota.
+Relações medidas e ainda não usadas: `M200`/`M600` = Σ `M210`/`M610.VL_CONT_APUR`; `M400`/`M800` = Σ `M410`/`M810.VL_REC`.
 
 ### Limites conhecidos
 

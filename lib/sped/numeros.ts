@@ -73,6 +73,46 @@ export function casasDecimais(texto: string | undefined): number {
   return virgula === -1 ? 0 : (texto ?? '').length - virgula - 1;
 }
 
+/** Arredonda para `casas` decimais, meio para cima em modulo. */
+export function arredondar(valor: bigint, casas = 2): bigint {
+  const passo = 10n ** BigInt(ESCALA - casas);
+  if (passo === 1n) return valor;
+  const negativo = valor < 0n;
+  const absoluto = negativo ? -valor : valor;
+  const arredondado = ((absoluto + passo / 2n) / passo) * passo;
+  return negativo ? -arredondado : arredondado;
+}
+
+/**
+ * Reparte `novoTotal` entre as parcelas, mantendo as proporcoes atuais.
+ *
+ * Serve para o rateio do credito entre os COD_CRED do bloco M: quando a base
+ * muda, cada vinculacao (receita tributada, nao tributada, exportacao) encolhe
+ * na mesma proporcao — que e o que o metodo de rateio do registro 0111
+ * prescreve. O residuo do arredondamento vai para a maior parcela, para a soma
+ * fechar EXATA: o PVA compara com igualdade.
+ */
+export function ratearProporcional(atuais: bigint[], novoTotal: bigint, casas = 2): bigint[] {
+  if (atuais.length === 0) return [];
+  const alvo = arredondar(novoTotal, casas);
+  const total = atuais.reduce((a, b) => a + b, 0n);
+
+  // Sem base para proporcao: tudo na primeira parcela, que e o unico palpite
+  // que nao inventa distribuicao.
+  if (total === 0n) return atuais.map((_, i) => (i === 0 ? alvo : 0n));
+
+  const partes = atuais.map((a) => arredondar((a * alvo) / total, casas));
+  const residuo = alvo - partes.reduce((a, b) => a + b, 0n);
+  if (residuo !== 0n) {
+    let maior = 0;
+    for (let i = 1; i < partes.length; i++) {
+      if ((partes[i] ?? 0n) > (partes[maior] ?? 0n)) maior = i;
+    }
+    partes[maior] = (partes[maior] ?? 0n) + residuo;
+  }
+  return partes;
+}
+
 /** Soma exata, para deixar a intencao explicita em quem chama. */
 export const somar = (valores: Iterable<bigint>): bigint => {
   let total = 0n;
