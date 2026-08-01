@@ -62,3 +62,6 @@ scripts/conferencia/.xlsm/
 
 # arquivos de trava do Office (aparecem ao abrir doc no Word/Excel)
 ~$*
+
+# Vercel CLI
+.vercel
