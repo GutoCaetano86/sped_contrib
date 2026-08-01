@@ -1,6 +1,9 @@
 import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
-import { Slot } from "radix-ui"
+// Pacote dedicado, e nao o guarda-chuva "radix-ui": importar do barrel
+// arrastava TODO o Radix (DismissableLayer, FocusScope, Popper,
+// floating-ui) para o bundle do cliente — 78 kB a mais na landing.
+import * as Slot from "@radix-ui/react-slot"
 
 import { cn } from "@/lib/utils"
 

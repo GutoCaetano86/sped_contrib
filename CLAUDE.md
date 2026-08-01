@@ -28,7 +28,8 @@ Especificação completa em `docs/SPEC.md` (leia-a antes de implementar qualquer
 - [x] F3-T2 — auth: e-mail/senha e Google, verificados por evidência de servidor
 - [x] F3-T3 — rotas de API (`upload`, `convert`, `download/[id]`, `files`), 44 testes
 - [x] F3-T4 — UI: dashboard, upload com dropzone, detalhe do arquivo, os cinco estados da §7.5
-- [ ] F3-T5 a F3-T7 — landing, deploy
+- [x] F3-T5 — landing e `/privacidade`, estáticas e sem falha de contraste
+- [ ] F3-T6 e F3-T7 — deploy
 
 **O PVA aceitou o arquivo reconvertido** (30/07/2026): "A importação foi concluída com êxito. A escrituração não possui erros de estrutura." O teste foi feito com edição de verdade — 5 dos 10 itens de um `C170` excluídos —, então exercitou o recálculo de `9900`/`C990`/`9990`/`9999` fora do caso de round-trip idêntico. É o critério de aceite da spec §9.4, o único que os testes daqui não substituem.
 
@@ -212,6 +213,20 @@ O upload usa `XMLHttpRequest`, e não `fetch`, porque só ele reporta progresso 
 **Arquivo de saída não é arquivo pendente.** `/api/files` devolve `gerado_por` além de `ultima_conversao`: o primeiro é preenchido quando o arquivo é a *saída* de uma conversão. Sem isso o `_ajustado.txt` aparecia como "não convertido" na lista, o que faz um resultado parecer pendência — apareceu no primeiro teste de ponta a ponta pelo navegador. Por isso `conversoesDeArquivos` casa por `arquivo_origem_id` **ou** `arquivo_saida_id`.
 
 **Verificado pelo navegador** (01/08/2026), clicando de verdade: dashboard vazio → dropzone com preview do `0000` (CNPJ mascarado, período compactado) → converter → detalhe com resumo de 12 registros → download pela signed URL → reupload da planilha → volta para TXT → exclusão. O estado de erro foi exercitado com um XLSX truncado: selo `erro`, alerta acionável e o painel de ocorrências com a causa.
+
+## Landing e privacidade (F3-T5)
+
+As duas são **Server Components estáticos**, sem nenhum `'use client'` — é o que mantém o JS da rota baixo e o Lighthouse alto. Prazos e limites saem de `lib/plans.ts` para não divergirem do que o código aplica.
+
+A objeção central do público não é preço nem funcionalidade: é *"por que eu confiaria meu arquivo fiscal a vocês?"*. Por isso a seção de dados vem **antes** dos planos, com número concreto (retenção por plano, exclusão permanente, finalidade única) em vez de adjetivo.
+
+### O barril do `radix-ui` custava 78 kB na landing
+
+O `button.tsx` que o shadcn gera importa `{ Slot } from "radix-ui"` — o pacote **guarda-chuva**, que reexporta todos os primitivos. O tree-shaking não passa por ele: a landing carregava um chunk de 256 kB com `DismissableLayer`, `FocusScope`, `Popper` e `floating-ui` para usar um `Slot`.
+
+Trocado pelos pacotes dedicados (`@radix-ui/react-slot`, `-label`, `-progress`, `-separator`) em `badge`, `button`, `label`, `progress` e `separator`: **184 kB → 107 kB** de First Load JS na landing. Vale conferir isso sempre que um componente novo do shadcn for adicionado — o gerador continua usando o barril.
+
+O import é `import * as Slot from '@radix-ui/react-slot'`, e não `{ Slot }`: o código do shadcn usa `Slot.Root`, e o pacote dedicado exporta o componente direto.
 
 ## Rotas de API: por que a lógica não mora em `app/api/` (F3-T3)
 
