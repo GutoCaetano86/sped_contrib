@@ -265,7 +265,7 @@ Arquivo de outro usuário responde **404, nunca 403**: confirmar que o id existe
 - Existe um `package-lock.json` solto em `C:\Users\augus\`; por isso o `outputFileTracingRoot` explícito no `next.config.ts` — sem ele o Next infere a home do usuário como raiz do workspace.
 - `npm audit` acusa vulnerabilidades altas em `postcss` e `sharp`, ambas transitivas dentro do próprio `next`. O `fix` sugerido regride o Next para a 9.3.3 — **não rodar `npm audit fix --force`**.
 - O Vitest **falha de forma intermitente** nesta máquina ao criar processos de worker: `Error: spawn UNKNOWN` com `errno -4094`. Aparece como `no tests` ou como falhas aparentemente aleatórias que não se repetem. Antes de investigar uma falha de teste, **rode de novo** — se a segunda rodada passa limpa, era isso. Se incomodar, `npx vitest run --pool=threads` costuma contornar.
-- O `@supabase/supabase-js` avisa que Node 20 está depreciado e pedirá Node 22+ em versões futuras. Ainda funciona, mas é um upgrade a agendar.
+- **Node 24** é a versão do projeto: `.nvmrc` tem `24` e o `package.json` declara `engines.node >= 24`. É a mesma que a Vercel usa, e resolveu o aviso de depreciação do `@supabase/supabase-js` (que pedia Node 22+). Com `fnm` instalado, `fnm use` na raiz já troca; para rodar um comando avulso, `fnm exec --using=24 <comando>`.
 - `npm run build` falha com `EPERM ... .next\trace` quando o dev server está rodando — ele segura o diretório. Pare o dev server antes de buildar.
 
 ## Stack
