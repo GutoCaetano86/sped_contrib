@@ -209,6 +209,10 @@ Três coisas que a UI exigiu do backend e que não estavam na spec §6:
 
 O upload usa `XMLHttpRequest`, e não `fetch`, porque só ele reporta progresso de envio. Num TXT de 17 MB a barra é o único sinal de que a aplicação não travou.
 
+**Arquivo de saída não é arquivo pendente.** `/api/files` devolve `gerado_por` além de `ultima_conversao`: o primeiro é preenchido quando o arquivo é a *saída* de uma conversão. Sem isso o `_ajustado.txt` aparecia como "não convertido" na lista, o que faz um resultado parecer pendência — apareceu no primeiro teste de ponta a ponta pelo navegador. Por isso `conversoesDeArquivos` casa por `arquivo_origem_id` **ou** `arquivo_saida_id`.
+
+**Verificado pelo navegador** (01/08/2026), clicando de verdade: dashboard vazio → dropzone com preview do `0000` (CNPJ mascarado, período compactado) → converter → detalhe com resumo de 12 registros → download pela signed URL → reupload da planilha → volta para TXT → exclusão. O estado de erro foi exercitado com um XLSX truncado: selo `erro`, alerta acionável e o painel de ocorrências com a causa.
+
 ## Rotas de API: por que a lógica não mora em `app/api/` (F3-T3)
 
 Cada `route.ts` é um adaptador de três linhas. A lógica está em `lib/api/{upload,convert,download,files}.ts`, em funções que recebem `Dependencias` — o contrato em `lib/api/dependencias.ts` — em vez de chamarem o Supabase direto.

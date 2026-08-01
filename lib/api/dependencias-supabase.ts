@@ -119,7 +119,12 @@ export async function dependenciasSupabase(): Promise<Dependencias> {
         .from('conversoes')
         .select('*')
         .eq('user_id', userId)
-        .in('arquivo_origem_id', arquivoIds)
+        // Origem OU saida: um arquivo gerado por conversao precisa ser
+        // reconhecido como resultado, senao a lista o mostra como pendente.
+        .or(
+          `arquivo_origem_id.in.(${arquivoIds.join(',')}),` +
+            `arquivo_saida_id.in.(${arquivoIds.join(',')})`,
+        )
         .order('criado_em', { ascending: false });
       if (error) throw new ErroSupabase('listar conversoes', error);
       return (data ?? []) as RegistroConversao[];

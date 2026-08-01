@@ -40,7 +40,11 @@ function resumoDaConversao(c: RegistroConversao) {
   };
 }
 
-function resumoDoArquivo(a: RegistroArquivo, ultima: RegistroConversao | undefined) {
+function resumoDoArquivo(
+  a: RegistroArquivo,
+  ultima: RegistroConversao | undefined,
+  geradoPor: RegistroConversao | undefined,
+) {
   return {
     arquivo_id: a.id,
     nome: a.nome_original,
@@ -52,6 +56,9 @@ function resumoDoArquivo(a: RegistroArquivo, ultima: RegistroConversao | undefin
     periodo_fim: a.periodo_fim,
     criado_em: a.criado_em,
     ultima_conversao: ultima ? resumoDaConversao(ultima) : null,
+    // Preenchido quando ESTE arquivo e a saida de uma conversao. Sem isto a
+    // lista mostra "nao convertido" num arquivo que e resultado, e nao entrada.
+    gerado_por: geradoPor ? resumoDaConversao(geradoPor) : null,
   };
 }
 
@@ -83,11 +90,13 @@ export async function getFiles(request: Request, deps: Dependencias): Promise<Re
   // A ultima conversao de cada arquivo. `listarArquivos` ja devolve ordenado,
   // mas as conversoes nao, entao a comparacao e explicita.
   const ultimaPorArquivo = new Map<string, RegistroConversao>();
+  const geradoPor = new Map<string, RegistroConversao>();
   for (const c of conversoes) {
     const atual = ultimaPorArquivo.get(c.arquivo_origem_id);
     if (!atual || c.criado_em > atual.criado_em) {
       ultimaPorArquivo.set(c.arquivo_origem_id, c);
     }
+    if (c.arquivo_saida_id) geradoPor.set(c.arquivo_saida_id, c);
   }
 
   const plano = await deps.plano(usuario.id);
@@ -100,7 +109,9 @@ export async function getFiles(request: Request, deps: Dependencias): Promise<Re
     por_pagina: porPagina,
     total,
     total_paginas: Math.max(1, Math.ceil(total / porPagina)),
-    arquivos: itens.map((a) => resumoDoArquivo(a, ultimaPorArquivo.get(a.id))),
+    arquivos: itens.map((a) =>
+      resumoDoArquivo(a, ultimaPorArquivo.get(a.id), geradoPor.get(a.id)),
+    ),
     conversoes: conversoes
       .slice()
       .sort((a, b) => (a.criado_em < b.criado_em ? 1 : -1))

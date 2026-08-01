@@ -137,7 +137,12 @@ export function criarFake(opcoes: OpcoesFake = {}): Fake {
     },
 
     conversoesDeArquivos: async (userId, ids) =>
-      banco.conversoes.filter((c) => c.user_id === userId && ids.includes(c.arquivo_origem_id)),
+      banco.conversoes.filter(
+        (c) =>
+          c.user_id === userId &&
+          (ids.includes(c.arquivo_origem_id) ||
+            (c.arquivo_saida_id !== null && ids.includes(c.arquivo_saida_id))),
+      ),
 
     criarConversao: async (dados) => {
       const registro: RegistroConversao = {

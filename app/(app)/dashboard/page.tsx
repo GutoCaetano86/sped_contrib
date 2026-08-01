@@ -22,7 +22,12 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { formatarCnpj, formatarDataHora, formatarPeriodo } from '@/lib/formato';
-import { EstadoDaConversao, baixarArquivo, type ResumoConversao } from '../conversao';
+import {
+  EstadoDaConversao,
+  ROTULO_DIRECAO,
+  baixarArquivo,
+  type ResumoConversao,
+} from '../conversao';
 
 interface ArquivoDaLista {
   arquivo_id: string;
@@ -35,6 +40,8 @@ interface ArquivoDaLista {
   periodo_fim: string | null;
   criado_em: string;
   ultima_conversao: ResumoConversao | null;
+  /** Preenchido quando o arquivo é a SAÍDA de uma conversão. */
+  gerado_por: ResumoConversao | null;
 }
 
 interface Resposta {
@@ -155,6 +162,12 @@ export default function DashboardPage() {
                 <TableCell>
                   {a.ultima_conversao ? (
                     <EstadoDaConversao conversao={a.ultima_conversao} />
+                  ) : a.gerado_por ? (
+                    // Arquivo de saída: chamar isto de "não convertido" faria o
+                    // resultado parecer pendência.
+                    <Badge variant="secondary">
+                      gerado · {ROTULO_DIRECAO[a.gerado_por.direcao]}
+                    </Badge>
                   ) : (
                     <Badge variant="outline">não convertido</Badge>
                   )}
