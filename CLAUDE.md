@@ -27,7 +27,8 @@ Especificação completa em `docs/SPEC.md` (leia-a antes de implementar qualquer
 - [x] F3-T1 — banco, RLS, buckets, trigger de perfil, `plans.ts`
 - [x] F3-T2 — auth: e-mail/senha e Google, verificados por evidência de servidor
 - [x] F3-T3 — rotas de API (`upload`, `convert`, `download/[id]`, `files`), 44 testes
-- [ ] F3-T4 a F3-T7 — UI, landing, deploy
+- [x] F3-T4 — UI: dashboard, upload com dropzone, detalhe do arquivo, os cinco estados da §7.5
+- [ ] F3-T5 a F3-T7 — landing, deploy
 
 **O PVA aceitou o arquivo reconvertido** (30/07/2026): "A importação foi concluída com êxito. A escrituração não possui erros de estrutura." O teste foi feito com edição de verdade — 5 dos 10 itens de um `C170` excluídos —, então exercitou o recálculo de `9900`/`C990`/`9990`/`9999` fora do caso de round-trip idêntico. É o critério de aceite da spec §9.4, o único que os testes daqui não substituem.
 
@@ -189,6 +190,24 @@ Relações medidas e ainda não usadas: `M200`/`M600` = Σ `M210`/`M610.VL_CONT_
 - **A solução do sistema é a primeira que fecha; não provamos unicidade** — a busca exaustiva estourou 900 s. Se dois grupos de CFOP fossem trocáveis, o delta cairia no NAT errado, e o PVA acusaria **os dois** baldes, porque valida exatamente essa relação. O erro aparece na validação, não passa silencioso.
 - `FONTES` em `apuracao.ts` lista os registros que alimentam a base. Se um perfil usar outro, a soma não fecha e o aprendizado é recusado — que é o comportamento certo, e o sinal de que a tabela precisa crescer.
 - Aritmética em `bigint` (`lib/sped/numeros.ts`), nunca `number`: somar 34 mil bases em ponto flutuante acumula erro de centavos e o PVA compara com igualdade exata.
+
+## Interface (F3-T4)
+
+As três telas são **client components** que consomem as rotas de API, e não Server Components lendo o banco. O motivo é a spec §7.5: skeleton de carregamento e polling do estado `processando` precisam de estado no navegador. O primeiro paint perde um pouco; a interatividade e os estados exigidos ganham.
+
+**O polling existe apesar de `/api/convert` ser síncrono.** A rota roda o pipeline e só responde no fim, então o botão "Converter" já espera. O polling a cada 2 s serve para o outro caso: a conversão é criada com status `processando` **antes** do pipeline, então recarregar a página ou abrir outra aba mostra o andamento em vez de uma tela morta. É resiliência, não duplicação.
+
+Três coisas que a UI exigiu do backend e que não estavam na spec §6:
+
+| O que | Por quê |
+| --- | --- |
+| coluna `conversoes.resumo_registros` | §7.4 pede "registros por tipo com contagem", que não era persistido. Reparsear 17 MB a cada visita seria desperdício |
+| `GET /api/files/[id]` | a listagem corta ocorrências em 200 e não traz o resumo; o polling também precisa de uma rota barata de um arquivo só |
+| `DELETE /api/files/[id]` | §7.2 pede a ação "excluir" e §8, exclusão permanente. **Storage primeiro, banco depois**: na ordem inversa uma falha deixaria objeto órfão no bucket, invisível e cobrado |
+
+`/api/upload` passou a devolver o `cabecalho` lido do `0000` para o preview da §7.3 — o usuário confirma que subiu o arquivo certo **antes** de gastar uma conversão da cota.
+
+O upload usa `XMLHttpRequest`, e não `fetch`, porque só ele reporta progresso de envio. Num TXT de 17 MB a barra é o único sinal de que a aplicação não travou.
 
 ## Rotas de API: por que a lógica não mora em `app/api/` (F3-T3)
 

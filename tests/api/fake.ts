@@ -68,6 +68,7 @@ export function conversaoFalsa(dados: Partial<RegistroConversao> = {}): Registro
     total_registros: 4,
     erros: [],
     avisos: [],
+    resumo_registros: [],
     duracao_ms: 120,
     criado_em: '2026-07-30T10:05:00.000Z',
     concluido_em: '2026-07-30T10:05:01.000Z',
@@ -111,6 +112,23 @@ export function criarFake(opcoes: OpcoesFake = {}): Fake {
     // Sem filtro por usuario, de proposito. Ver o comentario no topo.
     obterArquivo: async (id) => banco.arquivos.find((a) => a.id === id) ?? null,
 
+    apagarArquivo: async (id) => {
+      banco.arquivos = banco.arquivos.filter((a) => a.id !== id);
+    },
+
+    remover: async (bucket, caminho) => {
+      storage.delete(chave(bucket, caminho));
+    },
+
+    conversoesDoArquivo: async (userId, arquivoId) =>
+      banco.conversoes
+        .filter(
+          (c) =>
+            c.user_id === userId &&
+            (c.arquivo_origem_id === arquivoId || c.arquivo_saida_id === arquivoId),
+        )
+        .sort((a, b) => (a.criado_em < b.criado_em ? 1 : -1)),
+
     listarArquivos: async (userId, inicio, quantidade) => {
       const meus = banco.arquivos
         .filter((a) => a.user_id === userId)
@@ -129,6 +147,7 @@ export function criarFake(opcoes: OpcoesFake = {}): Fake {
         total_registros: null,
         erros: [],
         avisos: [],
+        resumo_registros: [],
         duracao_ms: null,
         criado_em: ISO(agora),
         concluido_em: null,

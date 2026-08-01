@@ -54,6 +54,15 @@ function nomeDaSaida(nomeEntrada: string, destino: TipoArquivo): string {
   return destino === 'xlsx' ? `${base}.xlsx` : `${base}${SUFIXO_RECONVERTIDO}.txt`;
 }
 
+/** Contagem por tipo de registro, ordenada, para a tabela da tela de detalhe. */
+function resumoPorRegistro(nos: { reg: string }[]): { reg: string; n: number }[] {
+  const contagem = new Map<string, number>();
+  for (const no of nos) contagem.set(no.reg, (contagem.get(no.reg) ?? 0) + 1);
+  return [...contagem.entries()]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([reg, n]) => ({ reg, n }));
+}
+
 /** Data `ddmmaaaa` do leiaute para `aaaa-mm-dd` do Postgres. */
 const paraDataIso = (ddmmaaaa: string): string | null =>
   /^\d{8}$/.test(ddmmaaaa)
@@ -146,6 +155,7 @@ export async function postConvert(request: Request, deps: Dependencias): Promise
       await deps.atualizarConversao(conversao.id, {
         status: 'erro',
         total_linhas: res.nos.length,
+        resumo_registros: resumoPorRegistro(res.nos),
         erros: resumo.itens,
         avisos: resumirOcorrencias(avisos).itens,
         duracao_ms: Date.now() - inicio,
@@ -202,6 +212,7 @@ export async function postConvert(request: Request, deps: Dependencias): Promise
       arquivo_saida_id: registroSaida.id,
       total_linhas: res.nos.length,
       total_registros: new Set(res.nos.map((n) => n.reg)).size,
+      resumo_registros: resumoPorRegistro(res.nos),
       erros: resumoErros.itens,
       avisos: resumoAvisos.itens,
       duracao_ms: duracao,

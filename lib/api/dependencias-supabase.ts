@@ -91,6 +91,28 @@ export async function dependenciasSupabase(): Promise<Dependencias> {
       return { itens: (data ?? []) as RegistroArquivo[], total: count ?? 0 };
     },
 
+    async apagarArquivo(id) {
+      const { error } = await supabase.from('arquivos').delete().eq('id', id);
+      if (error) throw new ErroSupabase('apagar arquivo', error);
+    },
+
+    async remover(bucket: Bucket, caminho) {
+      const { error } = await supabase.storage.from(bucket).remove([caminho]);
+      // Objeto ausente nao e erro: o alvo e ele nao existir.
+      if (error) throw new ErroSupabase(`remover de ${bucket}`, error);
+    },
+
+    async conversoesDoArquivo(userId, arquivoId) {
+      const { data, error } = await supabase
+        .from('conversoes')
+        .select('*')
+        .eq('user_id', userId)
+        .or(`arquivo_origem_id.eq.${arquivoId},arquivo_saida_id.eq.${arquivoId}`)
+        .order('criado_em', { ascending: false });
+      if (error) throw new ErroSupabase('conversoes do arquivo', error);
+      return (data ?? []) as RegistroConversao[];
+    },
+
     async conversoesDeArquivos(userId, arquivoIds) {
       if (arquivoIds.length === 0) return [];
       const { data, error } = await supabase

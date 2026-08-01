@@ -167,6 +167,14 @@ export async function postUpload(request: Request, deps: Dependencias): Promise<
       nome: registro.nome_original,
       tamanho_bytes: registro.tamanho_bytes,
       tipo: registro.tipo,
+      // O preview da spec 7.3 existe para o usuario confirmar que subiu o
+      // arquivo certo ANTES de gastar uma conversao da cota.
+      cabecalho: {
+        cnpj: registro.cnpj,
+        razao_social: registro.razao_social,
+        periodo_inicio: registro.periodo_inicio,
+        periodo_fim: registro.periodo_fim,
+      },
     },
     201,
   );

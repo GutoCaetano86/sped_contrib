@@ -44,6 +44,8 @@ export interface RegistroConversao {
   total_registros: number | null;
   erros: unknown[];
   avisos: unknown[];
+  /** Contagem por tipo de registro, para a tabela de conferência (spec 7.4). */
+  resumo_registros: { reg: string; n: number }[];
   duracao_ms: number | null;
   criado_em: string;
   concluido_em: string | null;
@@ -73,6 +75,12 @@ export interface Dependencias {
    */
   obterArquivo(id: string): Promise<RegistroArquivo | null>;
 
+  /** Apaga o arquivo do banco. O objeto no Storage sai por `remover`. */
+  apagarArquivo(id: string): Promise<void>;
+
+  /** Remove o objeto do Storage. Ausente nao e erro: o alvo e o mesmo. */
+  remover(bucket: Bucket, caminho: string): Promise<void>;
+
   /** Pagina de arquivos do usuario, mais recentes primeiro, e o total. */
   listarArquivos(
     userId: string,
@@ -82,6 +90,9 @@ export interface Dependencias {
 
   /** Conversoes que citam algum dos arquivos, para achar a ultima de cada um. */
   conversoesDeArquivos(userId: string, arquivoIds: string[]): Promise<RegistroConversao[]>;
+
+  /** Conversoes em que o arquivo foi origem OU saida, mais recentes primeiro. */
+  conversoesDoArquivo(userId: string, arquivoId: string): Promise<RegistroConversao[]>;
 
   criarConversao(dados: {
     user_id: string;
