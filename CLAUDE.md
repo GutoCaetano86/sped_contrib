@@ -29,7 +29,8 @@ Especificação completa em `docs/SPEC.md` (leia-a antes de implementar qualquer
 - [x] F3-T3 — rotas de API (`upload`, `convert`, `download/[id]`, `files`), 44 testes
 - [x] F3-T4 — UI: dashboard, upload com dropzone, detalhe do arquivo, os cinco estados da §7.5
 - [x] F3-T5 — landing e `/privacidade`, estáticas e sem falha de contraste
-- [ ] F3-T6 e F3-T7 — deploy
+- [x] F3-T6 — preparo do deploy: cron de retenção, Sentry, `docs/DEPLOY.md`
+- [ ] F3-T7 — publicar na Vercel (depende de conta e segredos do usuário)
 
 **O PVA aceitou o arquivo reconvertido** (30/07/2026): "A importação foi concluída com êxito. A escrituração não possui erros de estrutura." O teste foi feito com edição de verdade — 5 dos 10 itens de um `C170` excluídos —, então exercitou o recálculo de `9900`/`C990`/`9990`/`9999` fora do caso de round-trip idêntico. É o critério de aceite da spec §9.4, o único que os testes daqui não substituem.
 
@@ -227,6 +228,18 @@ O `button.tsx` que o shadcn gera importa `{ Slot } from "radix-ui"` — o pacote
 Trocado pelos pacotes dedicados (`@radix-ui/react-slot`, `-label`, `-progress`, `-separator`) em `badge`, `button`, `label`, `progress` e `separator`: **184 kB → 107 kB** de First Load JS na landing. Vale conferir isso sempre que um componente novo do shadcn for adicionado — o gerador continua usando o barril.
 
 O import é `import * as Slot from '@radix-ui/react-slot'`, e não `{ Slot }`: o código do shadcn usa `Slot.Root`, e o pacote dedicado exporta o componente direto.
+
+## Deploy e operação (F3-T6)
+
+Passo a passo em `docs/DEPLOY.md`. O que vale saber sem abrir o arquivo:
+
+**O job de retenção é o único código que apaga dado de todos os usuários e roda sem sessão.** Por isso: exige `CRON_SECRET` no header (e **fica fechado** quando a variável não existe — ausência de configuração vira 401, não rota aberta), aceita `?simular=1` para relatar sem apagar, e remove do Storage **antes** do banco. É também o único uso de `criarClienteAdmin()`, porque precisa ignorar a RLS de propósito.
+
+Apagar `arquivos` derruba as `conversoes` junto, por cascade. Intencional: a spec §8 fala em exclusão, não arquivamento.
+
+**O Sentry tem um filtro obrigatório em `lib/observabilidade.ts`.** Ele roda em todo evento e remove linha de registro, CNPJ, CPF, valor monetário citado pelo validador, e o **corpo da requisição** — que num `POST /api/upload` é o arquivo fiscal inteiro. `tests/observabilidade.test.ts` trava isso. Sem DSN o Sentry fica inerte.
+
+**O SDK de navegador do Sentry está desligado de propósito:** custa 86 kB de JS em toda rota e leva a landing de 108 kB para 191 kB de First Load JS, desfazendo a otimização do F3-T5. O que quebra neste produto quebra no servidor, e isso está coberto. O trecho para religar está no `docs/DEPLOY.md`.
 
 ## Rotas de API: por que a lógica não mora em `app/api/` (F3-T3)
 
