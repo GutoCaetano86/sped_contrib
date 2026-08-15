@@ -32,6 +32,26 @@ export function dependenciasRetencao(): DependenciasRetencao {
       if (error) throw new Error(`remover de ${bucket}: ${error.message}`);
     },
 
+    async listarObjetos(bucket: Bucket, prefixo) {
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .list(prefixo, { limit: 1000 });
+      if (error) throw new Error(`listar objetos de ${bucket}: ${error.message}`);
+      return (data ?? []).map((o) => ({
+        nome: o.name,
+        criadoEm: o.created_at ?? new Date(0).toISOString(),
+      }));
+    },
+
+    async caminhosRegistrados(userId) {
+      const { data, error } = await supabase
+        .from('arquivos')
+        .select('storage_path')
+        .eq('user_id', userId);
+      if (error) throw new Error(`caminhos registrados: ${error.message}`);
+      return (data ?? []).map((a) => String((a as { storage_path: string }).storage_path));
+    },
+
     async apagarArquivos(ids) {
       const { error } = await supabase.from('arquivos').delete().in('id', ids);
       if (error) throw new Error(`apagar arquivos: ${error.message}`);

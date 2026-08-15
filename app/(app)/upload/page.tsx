@@ -57,43 +57,110 @@ export default function UploadPage() {
   }, []);
 
   /**
-   * Envia com XMLHttpRequest, e nao com fetch, porque so ele reporta progresso
-   * de upload. Um TXT de 17 MB leva segundos e a barra e o unico sinal de que
-   * a aplicacao nao travou.
+   * PUT dos bytes direto para o Storage, com XMLHttpRequest.
+   *
+   * XHR e nao `fetch` porque so ele reporta progresso de envio, e num TXT de
+   * 17 MB a barra e o unico sinal de que nada travou. O destino e o Supabase,
+   * nao a nossa funcao — e o que faz o limite de 4,5 MB da Vercel deixar de
+   * valer (ver lib/api/upload.ts).
    */
-  const enviar = useCallback((arquivo: File) => {
-    setErro(null);
-    setEnviado(null);
-    setProgresso(0);
+  const enviarAoStorage = (url: string, contentType: string, arquivo: File) =>
+    new Promise<void>((resolver, rejeitar) => {
+      const req = new XMLHttpRequest();
+      req.open('PUT', url);
+      req.setRequestHeader('content-type', contentType);
 
-    const dados = new FormData();
-    dados.append('arquivo', arquivo);
-
-    const req = new XMLHttpRequest();
-    req.open('POST', '/api/upload');
-    req.withCredentials = true;
-
-    req.upload.addEventListener('progress', (e) => {
-      if (e.lengthComputable) setProgresso(Math.round((e.loaded / e.total) * 100));
+      req.upload.addEventListener('progress', (e) => {
+        if (e.lengthComputable) setProgresso(Math.round((e.loaded / e.total) * 100));
+      });
+      req.addEventListener('load', () => {
+        if (req.status >= 200 && req.status < 300) return resolver();
+        rejeitar(
+          new Error(
+            `O Storage recusou o arquivo (HTTP ${req.status}). ` +
+              `${req.responseText.slice(0, 160)}`,
+          ),
+        );
+      });
+      req.addEventListener('error', () =>
+        rejeitar(new Error('Falha de rede ao enviar o arquivo para o Storage.')),
+      );
+      req.addEventListener('abort', () => rejeitar(new Error('Envio cancelado.')));
+      req.send(arquivo);
     });
-    req.addEventListener('load', () => {
-      setProgresso(null);
-      let corpo: { erro?: string } & Partial<Enviado> = {};
-      try {
-        corpo = JSON.parse(req.responseText);
-      } catch {
-        setErro('Resposta inesperada do servidor.');
+
+  /** Le JSON de uma resposta nossa, dizendo o que veio quando nao e JSON. */
+  async function lerJson(r: Response): Promise<Record<string, unknown>> {
+    const texto = await r.text();
+    try {
+      return JSON.parse(texto) as Record<string, unknown>;
+    } catch {
+      // Acontece quando a plataforma responde no lugar da aplicacao. Sem o
+      // status e o inicio do corpo, o diagnostico se perde — foi exatamente o
+      // que aconteceu no B3.
+      throw new Error(
+        `Resposta inesperada do servidor (HTTP ${r.status}). ` +
+          `Início da resposta: ${texto.slice(0, 120)}`,
+      );
+    }
+  }
+
+  const enviar = useCallback(
+    async (arquivo: File) => {
+      setErro(null);
+      setEnviado(null);
+
+      // Recusa antes de gastar a subida: enviar 200 MB para receber "grande
+      // demais" no fim e desperdicio do tempo de quem usa.
+      const limite = cota?.tamanho_maximo_bytes ?? null;
+      if (limite !== null && arquivo.size > limite) {
+        setErro(
+          `"${arquivo.name}" tem ${formatarBytes(arquivo.size)} e o limite do seu plano é ` +
+            `${formatarBytes(limite)} por arquivo.`,
+        );
         return;
       }
-      if (req.status >= 200 && req.status < 300) setEnviado(corpo as Enviado);
-      else setErro(corpo.erro ?? `Falha no envio (HTTP ${req.status}).`);
-    });
-    req.addEventListener('error', () => {
-      setProgresso(null);
-      setErro('Falha de rede ao enviar o arquivo.');
-    });
-    req.send(dados);
-  }, []);
+
+      setProgresso(0);
+      try {
+        const assinatura = await lerJson(
+          await fetch('/api/upload/assinar', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ nome: arquivo.name, tamanho_bytes: arquivo.size }),
+          }),
+        );
+        if (typeof assinatura.url !== 'string') {
+          throw new Error(String(assinatura.erro ?? 'Não foi possível preparar o envio.'));
+        }
+
+        await enviarAoStorage(
+          assinatura.url,
+          String(assinatura.content_type ?? 'application/octet-stream'),
+          arquivo,
+        );
+
+        const confirmado = await lerJson(
+          await fetch('/api/upload/confirmar', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({ caminho: assinatura.caminho, nome: arquivo.name }),
+          }),
+        );
+        if (typeof confirmado.arquivo_id !== 'string') {
+          throw new Error(String(confirmado.erro ?? 'O servidor não aceitou o arquivo.'));
+        }
+        setEnviado(confirmado as unknown as Enviado);
+      } catch (causa) {
+        setErro(causa instanceof Error ? causa.message : String(causa));
+      } finally {
+        setProgresso(null);
+      }
+    },
+    [cota],
+  );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     multiple: false,
@@ -107,7 +174,7 @@ export default function UploadPage() {
         return;
       }
       const arquivo = aceitos[0];
-      if (arquivo) enviar(arquivo);
+      if (arquivo) void enviar(arquivo);
     },
   });
 
