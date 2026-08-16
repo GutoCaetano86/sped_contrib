@@ -8,7 +8,8 @@ import { criarClienteServidor } from '@/lib/supabase/server';
 
 export interface EstadoAuth {
   erro?: string;
-  aviso?: string;
+  /** E-mail para o qual o cadastro acabou de mandar confirmação. */
+  emailConfirmacaoPendente?: string;
 }
 
 /** Destino seguro pos-login: so caminho interno, nunca URL absoluta. */
@@ -66,7 +67,7 @@ export async function cadastrar(_anterior: EstadoAuth, dados: FormData): Promise
   // Com confirmacao de e-mail ligada no projeto, o Supabase devolve o usuario
   // sem sessao: nao da para redirecionar para o dashboard ainda.
   if (data.user && !data.session) {
-    return { aviso: 'Conta criada. Confira seu e-mail para confirmar o cadastro.' };
+    return { emailConfirmacaoPendente: email };
   }
 
   redirect('/dashboard');

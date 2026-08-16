@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { EstadoAuth } from './acoes';
+import { PainelConfirmacao } from './painel-confirmacao';
 
 function BotaoEnviar({ children }: { children: React.ReactNode }) {
   const { pending } = useFormStatus();
@@ -29,6 +30,10 @@ interface Props {
 
 export function FormularioAuth({ acao, acaoGoogle, rotulo, pedirNome, proxima }: Props) {
   const [estado, enviar] = useActionState(acao, {});
+
+  if (estado.emailConfirmacaoPendente) {
+    return <PainelConfirmacao email={estado.emailConfirmacaoPendente} />;
+  }
 
   return (
     <div className="space-y-4">
@@ -69,11 +74,6 @@ export function FormularioAuth({ acao, acaoGoogle, rotulo, pedirNome, proxima }:
         {estado.erro ? (
           <p role="alert" className="text-sm text-destructive">
             {estado.erro}
-          </p>
-        ) : null}
-        {estado.aviso ? (
-          <p role="status" className="text-sm text-muted-foreground">
-            {estado.aviso}
           </p>
         ) : null}
 
