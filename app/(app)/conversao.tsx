@@ -67,6 +67,9 @@ export async function baixarArquivo(
 
     const link = document.createElement('a');
     link.href = corpo.url;
+    // NAO e isto que forca o download: a URL e cross-origin (Storage do
+    // Supabase), e o navegador ignora `download` nesse caso (B4). Quem forca
+    // e o Content-Disposition que /api/download/[id] pede na assinatura.
     link.download = corpo.nome ?? '';
     document.body.appendChild(link);
     link.click();

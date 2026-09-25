@@ -166,10 +166,14 @@ export async function dependenciasSupabase(): Promise<Dependencias> {
       return Buffer.from(await data.arrayBuffer());
     },
 
-    async urlAssinada(bucket: Bucket, caminho, segundos) {
+    async urlAssinada(bucket: Bucket, caminho, segundos, nomeParaDownload) {
       const { data, error } = await supabase.storage
         .from(bucket)
-        .createSignedUrl(caminho, segundos);
+        .createSignedUrl(
+          caminho,
+          segundos,
+          nomeParaDownload ? { download: nomeParaDownload } : undefined,
+        );
       if (error || !data) throw new ErroSupabase(`assinar url em ${bucket}`, error);
       return data.signedUrl;
     },

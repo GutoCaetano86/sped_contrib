@@ -63,10 +63,34 @@ describe('GET /api/files/[id]', () => {
     expect(corpo.conversoes).toHaveLength(2);
   });
 
-  it('arquivo sem conversão devolve ultima_conversao nula', async () => {
+  it('arquivo sem conversão devolve ultima_conversao e gerado_por nulos', async () => {
     const deps = criarFake({ agora: AGORA, arquivos: [arquivoFalso()] });
     const corpo = await (await getArquivo('arq-1', deps)).json();
     expect(corpo.ultima_conversao).toBeNull();
+    expect(corpo.gerado_por).toBeNull();
+  });
+
+  it('arquivo que é saída de conversão devolve gerado_por (B5.2)', async () => {
+    // Antes disto a tela de detalhe da própria saída mostrava "Ainda não
+    // convertido", porque so `arquivo_origem_id` era considerado.
+    const deps = criarFake({
+      agora: AGORA,
+      arquivos: [
+        arquivoFalso({ id: 'origem', nome_original: 'efd_202112.txt' }),
+        arquivoFalso({ id: 'saida', tipo: 'xlsx', nome_original: 'efd_202112.xlsx' }),
+      ],
+      conversoes: [
+        conversaoFalsa({ id: 'gerou', arquivo_origem_id: 'origem', arquivo_saida_id: 'saida' }),
+      ],
+    });
+
+    const corpo = await (await getArquivo('saida', deps)).json();
+    expect(corpo.ultima_conversao).toBeNull();
+    expect(corpo.gerado_por).toMatchObject({
+      conversao_id: 'gerou',
+      arquivo_origem_id: 'origem',
+      arquivo_origem_nome: 'efd_202112.txt',
+    });
   });
 
   it('arquivo de outro usuário responde 404, e não 403', async () => {

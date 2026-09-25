@@ -20,6 +20,16 @@ describe('GET /api/download/[id]', () => {
     expect(corpo).toMatchObject({ arquivo_id: 'arq-1', nome: 'efd.txt', tipo: 'txt' });
   });
 
+  it('pede Content-Disposition com o nome original (B4)', async () => {
+    // Sem isso a URL assinada e cross-origin: o atributo `download` do <a> no
+    // cliente e ignorado e o Storage serve TXT como text/plain, que abre em
+    // vez de baixar.
+    const deps = criarFake({ agora: AGORA, arquivos: [arquivoFalso({ nome_original: 'efd_202112.txt' })] });
+
+    const corpo = await (await getDownload('arq-1', deps)).json();
+    expect(corpo.url).toContain(`download=${encodeURIComponent('efd_202112.txt')}`);
+  });
+
   it('assina no bucket outputs quando o arquivo e de saida', async () => {
     const saida = arquivoFalso({
       id: 'arq-saida',
