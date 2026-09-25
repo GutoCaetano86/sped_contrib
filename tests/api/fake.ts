@@ -179,9 +179,10 @@ export function criarFake(opcoes: OpcoesFake = {}): Fake {
       return bytes;
     },
 
-    urlAssinada: async (bucket, caminho, segundos) => {
+    urlAssinada: async (bucket, caminho, segundos, nomeParaDownload) => {
       if (opcoes.assinaturaFalha) throw new Error('objeto ausente');
-      return `https://fake.supabase/${bucket}/${caminho}?expira=${segundos}`;
+      const download = nomeParaDownload ? `&download=${encodeURIComponent(nomeParaDownload)}` : '';
+      return `https://fake.supabase/${bucket}/${caminho}?expira=${segundos}${download}`;
     },
 
     novoId: proximoId,

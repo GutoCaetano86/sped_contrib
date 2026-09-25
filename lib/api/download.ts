@@ -24,6 +24,7 @@ export async function getDownload(
       bucketDoCaminho(arquivo.storage_path),
       caminhoNoBucket(arquivo.storage_path),
       VALIDADE_SEGUNDOS,
+      arquivo.nome_original,
     );
   } catch (causa) {
     // Acontece quando o job de retencao ja apagou o objeto mas a linha ficou.

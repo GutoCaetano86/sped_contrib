@@ -105,7 +105,19 @@ export interface Dependencias {
 
   subir(bucket: Bucket, caminho: string, bytes: Buffer, contentType: string): Promise<void>;
   baixar(bucket: Bucket, caminho: string): Promise<Buffer>;
-  urlAssinada(bucket: Bucket, caminho: string, segundos: number): Promise<string>;
+
+  /**
+   * `nomeParaDownload`, quando informado, pede `Content-Disposition: attachment`
+   * ao Storage (spec 6 / B4). Sem ele a URL assinada e cross-origin — o
+   * atributo `download` do `<a>` no cliente e ignorado pelo navegador nesse
+   * caso, e o Storage serve TXT como `text/plain`, que abre em vez de baixar.
+   */
+  urlAssinada(
+    bucket: Bucket,
+    caminho: string,
+    segundos: number,
+    nomeParaDownload?: string,
+  ): Promise<string>;
 
   /** Injetados para o teste ser deterministico. */
   novoId(): string;
