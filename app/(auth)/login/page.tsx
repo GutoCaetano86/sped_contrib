@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { entrar, entrarComGoogle } from '../acoes';
 import { FormularioAuth } from '../formulario-auth';
+import { ReenviarConfirmacao } from '../reenviar-confirmacao';
 
 export const metadata = { title: 'Entrar — SPED Converter' };
 
@@ -39,6 +40,8 @@ export default async function LoginPage({
           Criar conta
         </Link>
       </p>
+
+      <ReenviarConfirmacao />
     </main>
   );
 }

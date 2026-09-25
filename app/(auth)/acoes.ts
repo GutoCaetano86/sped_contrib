@@ -5,11 +5,14 @@
 import { headers } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { criarClienteServidor } from '@/lib/supabase/server';
+import { mensagemDeRateLimit } from './rate-limit';
 
 export interface EstadoAuth {
   erro?: string;
   /** E-mail para o qual o cadastro acabou de mandar confirmação. */
   emailConfirmacaoPendente?: string;
+  /** B2: resposta do reenvio, deliberadamente igual exista ou não a conta. */
+  reenvioMensagem?: string;
 }
 
 /** Destino seguro pos-login: so caminho interno, nunca URL absoluta. */
@@ -21,6 +24,11 @@ function destinoSeguro(valor: FormDataEntryValue | null): string {
 
 /** Mensagens do Supabase vem em ingles; traduz as mais comuns. */
 function traduzir(mensagem: string): string {
+  // Rate limit de e-mail primeiro: cadastrar() manda e-mail de confirmacao
+  // e pode esbarrar no mesmo teto do B2 (ver rate-limit.ts).
+  const rateLimit = mensagemDeRateLimit(mensagem);
+  if (rateLimit) return rateLimit;
+
   const mapa: Record<string, string> = {
     'Invalid login credentials': 'E-mail ou senha incorretos.',
     'Email not confirmed': 'Confirme seu e-mail antes de entrar.',
@@ -71,6 +79,44 @@ export async function cadastrar(_anterior: EstadoAuth, dados: FormData): Promise
   }
 
   redirect('/dashboard');
+}
+
+/**
+ * Reenvia o e-mail de confirmação de cadastro (B2).
+ *
+ * Confirmado direto contra o projeto: tentar cadastrar de novo com o mesmo
+ * e-mail não confirmado NÃO reenvia nada por conta própria — o GoTrue só
+ * reenvia a pedido explícito, via `resend()`. Sem esta ação o usuário cujo
+ * primeiro e-mail se perdeu (spam, digitação) ficava sem saída.
+ *
+ * A resposta de sucesso é a MESMA exista ou não conta com este e-mail, e
+ * esteja ela confirmada ou não: dizer isso já vazaria a existência da conta
+ * alheia (motivo documentado no CLAUDE.md). A única exceção é o rate limit
+ * do próprio GoTrue — 60 s por e-mail, depois um teto por hora do serviço de
+ * SMTP embutido do Supabase — que é seguro revelar porque vale para
+ * qualquer e-mail, existente ou não.
+ */
+export async function reenviarConfirmacao(
+  _anterior: EstadoAuth,
+  dados: FormData,
+): Promise<EstadoAuth> {
+  const email = String(dados.get('email') ?? '').trim();
+  if (!email) return { erro: 'Informe o e-mail.' };
+
+  const origem = (await headers()).get('origin') ?? '';
+  const supabase = await criarClienteServidor();
+  const { error } = await supabase.auth.resend({
+    type: 'signup',
+    email,
+    options: { emailRedirectTo: `${origem}/auth/callback` },
+  });
+
+  if (error) {
+    const rateLimit = mensagemDeRateLimit(error.message);
+    if (rateLimit) return { erro: rateLimit };
+  }
+
+  return { reenvioMensagem: 'Se houver conta com este e-mail, a mensagem foi reenviada.' };
 }
 
 /**
