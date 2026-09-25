@@ -6,6 +6,7 @@
 // tela própria, com foco movido para ela.
 import { useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { ReenviarConfirmacao } from './reenviar-confirmacao';
 
 interface Props {
   email: string;
@@ -36,6 +37,8 @@ export function PainelConfirmacao({ email }: Props) {
       <p className="text-sm text-muted-foreground">
         Não encontrou a mensagem? Confira também a caixa de spam.
       </p>
+
+      <ReenviarConfirmacao email={email} />
 
       <Link href="/login" className="block text-sm font-medium underline underline-offset-4">
         Ir para o login
