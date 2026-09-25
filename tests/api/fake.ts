@@ -34,6 +34,10 @@ export interface Fake extends Dependencias {
   readonly storage: Map<string, Buffer>;
   /** Chamadas a `subir`, na ordem. */
   readonly subidas: { bucket: Bucket; caminho: string; bytes: number }[];
+  /** Chamadas a `assinarUpload`, na ordem. */
+  readonly assinados: { bucket: Bucket; caminho: string }[];
+  /** Grava bytes direto, simulando o PUT do navegador para o Storage. */
+  gravarComoNavegador(caminho: string, bytes: Buffer): void;
 }
 
 const ISO = (d: Date) => d.toISOString();
@@ -86,6 +90,7 @@ export function criarFake(opcoes: OpcoesFake = {}): Fake {
   };
   const storage = new Map<string, Buffer>();
   const subidas: Fake['subidas'] = [];
+  const assinados: Fake['assinados'] = [];
 
   let sequencia = 0;
   const proximoId = () => `id-${String(++sequencia).padStart(4, '0')}`;
@@ -96,6 +101,13 @@ export function criarFake(opcoes: OpcoesFake = {}): Fake {
     banco,
     storage,
     subidas,
+    assinados,
+
+    // O navegador envia direto ao Storage; nos testes isso vira uma escrita
+    // no mapa, sem passar por `subir`.
+    gravarComoNavegador(caminho, bytes) {
+      storage.set(`uploads/${caminho.replace(/^uploads\//, '')}`, bytes);
+    },
 
     usuario: async () => usuario,
     plano: async () => opcoes.plano ?? 'free',
@@ -166,6 +178,14 @@ export function criarFake(opcoes: OpcoesFake = {}): Fake {
       const atual = banco.conversoes.find((c) => c.id === id);
       if (!atual) throw new Error(`conversao ${id} nao existe no fake`);
       Object.assign(atual, dados);
+    },
+
+    assinarUpload: async (bucket, caminho) => {
+      assinados.push({ bucket, caminho });
+      return {
+        url: `https://fake.supabase/upload/sign/${bucket}/${caminho}?token=tok`,
+        token: 'tok',
+      };
     },
 
     subir: async (bucket, caminho, bytes) => {

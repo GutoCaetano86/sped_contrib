@@ -14,7 +14,7 @@
 // nao em arquivamento, e guardar o historico de um arquivo que ja nao existe
 // contraria a minimizacao da LGPD.
 import { limitesDe } from '@/lib/plans';
-import type { Bucket } from './dependencias';
+import { caminhoNoBucket, type Bucket } from './dependencias';
 import { falha, ok } from './respostas';
 
 /** Quantos caminhos por chamada ao Storage. A API do Supabase aceita ate 1000. */
@@ -26,6 +26,12 @@ export interface ArquivoVencido {
   user_id: string;
 }
 
+/** Objeto no Storage sem linha correspondente em `arquivos`. */
+export interface ObjetoNoBucket {
+  nome: string;
+  criadoEm: string;
+}
+
 export interface DependenciasRetencao {
   /** Todos os perfis, para saber a retencao de cada dono. */
   planosDosUsuarios(): Promise<{ id: string; plano: string }[]>;
@@ -33,8 +39,24 @@ export interface DependenciasRetencao {
   arquivosAte(userId: string, limite: Date): Promise<ArquivoVencido[]>;
   removerObjetos(bucket: Bucket, caminhos: string[]): Promise<void>;
   apagarArquivos(ids: string[]): Promise<void>;
+
+  /** Objetos sob o prefixo do usuario, para achar os orfaos. */
+  listarObjetos(bucket: Bucket, prefixo: string): Promise<ObjetoNoBucket[]>;
+  /** Todos os `storage_path` que o usuario tem registrados. */
+  caminhosRegistrados(userId: string): Promise<string[]>;
+
   agora(): Date;
 }
+
+/**
+ * Carencia antes de considerar um objeto orfao.
+ *
+ * O upload direto grava no Storage ANTES de a linha existir em `arquivos`
+ * (ver lib/api/upload.ts): entre o PUT do navegador e a confirmacao ha uma
+ * janela em que o objeto legitimamente nao tem dono. 24 h e folga suficiente
+ * para nao matar envio em andamento.
+ */
+const HORAS_DE_CARENCIA = 24;
 
 const emLotes = <T,>(itens: T[], tamanho: number): T[][] => {
   const lotes: T[][] = [];
@@ -93,16 +115,35 @@ export async function executarRetencao(
     }
   }
 
+  // --- orfaos: objeto no Storage sem linha em `arquivos` -------------------
+  // Sem esta varredura, um upload abandonado entre o PUT e a confirmacao
+  // ficaria no bucket para sempre — invisivel para o usuario e contrariando o
+  // prazo de retencao que a /privacidade promete.
+  const limiteOrfao = new Date(agora.getTime() - HORAS_DE_CARENCIA * 60 * 60 * 1000);
+  const orfaos: string[] = [];
+  for (const perfil of perfis) {
+    const registrados = new Set(
+      (await deps.caminhosRegistrados(perfil.id)).map((c) => caminhoNoBucket(c)),
+    );
+    for (const objeto of await deps.listarObjetos('uploads', perfil.id)) {
+      const caminho = `${perfil.id}/${objeto.nome}`;
+      if (registrados.has(caminho)) continue;
+      if (new Date(objeto.criadoEm) >= limiteOrfao) continue;
+      orfaos.push(caminho);
+    }
+  }
+
   const resumo = {
     simulacao: simular,
     executado_em: agora.toISOString(),
     perfis: perfis.length,
     arquivos: idsParaApagar.length,
+    orfaos: orfaos.length,
     por_plano: porPlano,
     por_bucket: Object.fromEntries([...porBucket].map(([b, c]) => [b, c.length])),
   };
 
-  if (simular || idsParaApagar.length === 0) return ok(resumo);
+  if (simular || (idsParaApagar.length === 0 && orfaos.length === 0)) return ok(resumo);
 
   try {
     // Storage primeiro; ver o cabecalho.
@@ -114,12 +155,17 @@ export async function executarRetencao(
     for (const lote of emLotes(idsParaApagar, LOTE)) {
       await deps.apagarArquivos(lote);
     }
+    for (const lote of emLotes(orfaos, LOTE)) {
+      await deps.removerObjetos('uploads', lote);
+    }
   } catch (causa) {
     // Nunca registrar conteudo de arquivo em log (spec 8): so contagem.
     console.error(`retencao falhou apos ${idsParaApagar.length} alvos: ${String(causa)}`);
     return falha('Falha ao aplicar a retenção.', 500, resumo);
   }
 
-  console.log(`retencao: ${idsParaApagar.length} arquivo(s) apagado(s)`);
+  console.log(
+    `retencao: ${idsParaApagar.length} arquivo(s) e ${orfaos.length} orfao(s) apagado(s)`,
+  );
   return ok(resumo);
 }

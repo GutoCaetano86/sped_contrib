@@ -104,6 +104,17 @@ export interface Dependencias {
   atualizarConversao(id: string, dados: Partial<RegistroConversao>): Promise<void>;
 
   subir(bucket: Bucket, caminho: string, bytes: Buffer, contentType: string): Promise<void>;
+
+  /**
+   * URL para o NAVEGADOR enviar o arquivo direto ao Storage.
+   *
+   * Existe porque a Vercel corta requisicao acima de 4.500.000 bytes antes de
+   * chamar a funcao (medido em producao, ver docs/BUGS-POS-DEPLOY.md B3). Um
+   * TXT de EFD tem 17 MB, entao passar o arquivo pelo corpo da requisicao
+   * simplesmente nao funciona. Com a URL assinada o arquivo vai do navegador
+   * para o Supabase, e a funcao so recebe o caminho.
+   */
+  assinarUpload(bucket: Bucket, caminho: string): Promise<{ url: string; token: string }>;
   baixar(bucket: Bucket, caminho: string): Promise<Buffer>;
   urlAssinada(bucket: Bucket, caminho: string, segundos: number): Promise<string>;
 

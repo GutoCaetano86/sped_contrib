@@ -154,6 +154,12 @@ export async function dependenciasSupabase(): Promise<Dependencias> {
       if (error) throw new ErroSupabase(`subir para ${bucket}`, error);
     },
 
+    async assinarUpload(bucket: Bucket, caminho) {
+      const { data, error } = await supabase.storage.from(bucket).createSignedUploadUrl(caminho);
+      if (error || !data) throw new ErroSupabase(`assinar upload em ${bucket}`, error);
+      return { url: data.signedUrl, token: data.token };
+    },
+
     async baixar(bucket: Bucket, caminho) {
       const { data, error } = await supabase.storage.from(bucket).download(caminho);
       if (error || !data) throw new ErroSupabase(`baixar de ${bucket}`, error);

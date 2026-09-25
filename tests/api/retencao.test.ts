@@ -23,6 +23,7 @@ interface ArquivoFalso extends ArquivoVencido {
 function criarDeps(
   perfis: { id: string; plano: string }[],
   arquivos: ArquivoFalso[],
+  objetos: Record<string, { nome: string; criadoEm: string }[]> = {},
 ): DependenciasRetencao & {
   removidos: { bucket: Bucket; caminhos: string[] }[];
   apagados: string[];
@@ -38,6 +39,9 @@ function criarDeps(
     removerObjetos: async (bucket, caminhos) => {
       removidos.push({ bucket, caminhos });
     },
+    listarObjetos: async (_bucket, prefixo) => objetos[prefixo] ?? [],
+    caminhosRegistrados: async (userId) =>
+      arquivos.filter((a) => a.user_id === userId).map((a) => a.storage_path),
     apagarArquivos: async (ids) => {
       apagados.push(...ids);
     },
@@ -170,6 +174,56 @@ describe('execução', () => {
     expect(resposta.status).toBe(500);
     expect(deps.apagados).toEqual([]);
     log.mockRestore();
+  });
+
+  it('varre órfão: objeto no Storage sem linha em arquivos', async () => {
+    // O upload direto grava no Storage ANTES de a linha existir. Se o usuário
+    // abandona entre o PUT e a confirmação, sobra objeto invisível — e a
+    // /privacidade promete que tudo é apagado no prazo do plano.
+    const deps = criarDeps(
+      [{ id: 'u1', plano: 'free' }],
+      [{ id: 'a1', user_id: 'u1', storage_path: 'uploads/u1/registrado.txt', criado_em: diasAtras(0) }],
+      {
+        u1: [
+          { nome: 'registrado.txt', criadoEm: diasAtras(0) },
+          { nome: 'abandonado.txt', criadoEm: diasAtras(3) },
+        ],
+      },
+    );
+
+    const corpo = await (await executarRetencao(pedir(), deps)).json();
+
+    expect(corpo.orfaos).toBe(1);
+    const removidos = deps.removidos.flatMap((r) => r.caminhos);
+    expect(removidos).toContain('u1/abandonado.txt');
+    // O que tem dono não pode ser tocado.
+    expect(removidos).not.toContain('u1/registrado.txt');
+  });
+
+  it('respeita a carência de 24 h — envio em andamento não é apagado', async () => {
+    const deps = criarDeps(
+      [{ id: 'u1', plano: 'free' }],
+      [],
+      { u1: [{ nome: 'enviando-agora.txt', criadoEm: diasAtras(0.2) }] },
+    );
+
+    const corpo = await (await executarRetencao(pedir(), deps)).json();
+
+    expect(corpo.orfaos).toBe(0);
+    expect(deps.removidos).toEqual([]);
+  });
+
+  it('simular conta os órfãos sem apagá-los', async () => {
+    const deps = criarDeps(
+      [{ id: 'u1', plano: 'free' }],
+      [],
+      { u1: [{ nome: 'abandonado.txt', criadoEm: diasAtras(3) }] },
+    );
+
+    const corpo = await (await executarRetencao(pedir('?simular=1'), deps)).json();
+
+    expect(corpo.orfaos).toBe(1);
+    expect(deps.removidos).toEqual([]);
   });
 
   it('não registra conteúdo nem caminho de arquivo no log', async () => {
