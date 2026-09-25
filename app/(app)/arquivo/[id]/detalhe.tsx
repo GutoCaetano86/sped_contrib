@@ -43,6 +43,13 @@ interface Conversao {
   concluido_em: string | null;
 }
 
+interface GeradoPor {
+  conversao_id: string;
+  direcao: 'txt_para_xlsx' | 'xlsx_para_txt';
+  arquivo_origem_id: string;
+  arquivo_origem_nome: string | null;
+}
+
 interface Detalhe {
   arquivo_id: string;
   nome: string;
@@ -54,6 +61,8 @@ interface Detalhe {
   periodo_fim: string | null;
   criado_em: string;
   ultima_conversao: Conversao | null;
+  /** Preenchido quando ESTE arquivo é a saída de uma conversão (B5.2). */
+  gerado_por: GeradoPor | null;
 }
 
 export function DetalheDoArquivo({ id }: { id: string }) {
@@ -154,10 +163,16 @@ export function DetalheDoArquivo({ id }: { id: string }) {
             Baixar original
           </Button>
           {conversao?.arquivo_saida_id ? (
-            <Button onClick={() => void baixarArquivo(conversao.arquivo_saida_id!, setErro)}>
-              <Download className="size-4" aria-hidden />
-              Baixar {dados.tipo === 'txt' ? 'planilha' : 'TXT'}
-            </Button>
+            <>
+              <Button onClick={() => void baixarArquivo(conversao.arquivo_saida_id!, setErro)}>
+                <Download className="size-4" aria-hidden />
+                Baixar {dados.tipo === 'txt' ? 'planilha' : 'TXT'}
+              </Button>
+              {/* B5.2: leva ao detalhe do resultado, em vez de so o download. */}
+              <Button variant="ghost" asChild>
+                <Link href={`/arquivo/${conversao.arquivo_saida_id}`}>Ver arquivo gerado</Link>
+              </Button>
+            </>
           ) : (
             <Button onClick={() => void converter()} disabled={convertendo || processando}>
               {convertendo || processando ? (
@@ -200,10 +215,37 @@ export function DetalheDoArquivo({ id }: { id: string }) {
 
       {conversao === null ? (
         <div className="rounded-lg border border-dashed p-10 text-center">
-          <h2 className="font-medium">Ainda não convertido</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Converta para {dados.tipo === 'txt' ? 'planilha Excel' : 'TXT do PVA'}.
-          </p>
+          {dados.gerado_por ? (
+            <>
+              {/* B5.2: este arquivo E um resultado — "não convertido" o faria
+                  parecer pendência, quando é o oposto. */}
+              <h2 className="font-medium">
+                {dados.tipo === 'xlsx' ? 'Planilha gerada' : 'TXT gerado'} a partir de{' '}
+                {dados.gerado_por.arquivo_origem_nome ? (
+                  <Link
+                    href={`/arquivo/${dados.gerado_por.arquivo_origem_id}`}
+                    className="underline underline-offset-4"
+                  >
+                    {dados.gerado_por.arquivo_origem_nome}
+                  </Link>
+                ) : (
+                  'outro arquivo'
+                )}
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {dados.tipo === 'xlsx'
+                  ? 'Editou a planilha? Converta de volta para TXT do PVA.'
+                  : 'Precisa ajustar de novo? Converta de volta para planilha.'}
+              </p>
+            </>
+          ) : (
+            <>
+              <h2 className="font-medium">Ainda não convertido</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Converta para {dados.tipo === 'txt' ? 'planilha Excel' : 'TXT do PVA'}.
+              </p>
+            </>
+          )}
         </div>
       ) : (
         <>

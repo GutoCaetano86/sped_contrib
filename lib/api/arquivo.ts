@@ -57,10 +57,24 @@ export async function getArquivo(id: string, deps: Dependencias): Promise<Respon
   // que tem o resumo e as ocorrencias desta leitura.
   const comoOrigem = conversoes.filter((c) => c.arquivo_origem_id === id);
 
+  // B5.2: este arquivo pode ser a SAIDA de uma conversao, e nao so a origem.
+  // Sem isto a tela mostrava "Ainda não convertido" num arquivo que e
+  // resultado, porque `comoOrigem` fica vazio para ele.
+  const comoSaida = conversoes.find((c) => c.arquivo_saida_id === id) ?? null;
+  const origemDaSaida = comoSaida ? await deps.obterArquivo(comoSaida.arquivo_origem_id) : null;
+
   return ok({
     ...detalheDoArquivo(arquivo),
     ultima_conversao: comoOrigem[0] ? detalheDaConversao(comoOrigem[0]) : null,
     conversoes: conversoes.map(detalheDaConversao),
+    gerado_por: comoSaida
+      ? {
+          conversao_id: comoSaida.id,
+          direcao: comoSaida.direcao,
+          arquivo_origem_id: comoSaida.arquivo_origem_id,
+          arquivo_origem_nome: origemDaSaida?.nome_original ?? null,
+        }
+      : null,
   });
 }
 
